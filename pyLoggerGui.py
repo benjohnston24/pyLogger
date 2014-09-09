@@ -10,14 +10,18 @@ __license__ = "GPL"
 ##IMPORTS#####################################################################
 from stdtoolbox.stdGUI import stdGUI, StdLabelFrame, StdLabel, StdButton
 from stdtoolbox.stdGUI import StdFrame, StdEntry
+from stdtoolbox import __revision__ as std_rev
 from loggerUnit import UNIT_TYPES, CONNECTION_TYPES
-from Tkinter import Tk, Menu, StringVar, OptionMenu
+from Tkinter import Tk, Menu, StringVar, OptionMenu, Toplevel, CENTER, LEFT
+from Tkinter import DISABLED
 import tkFont
 import os
+#Hardware imports
+from TSI import __revision__ as TSI_rev
+#from AFG import __revision__ as AFG_rev
 #If the system is a Windows OS import required packages
 if os.name == 'nt':
     import subprocess
-import pdb
 ##############################################################################
 
 ##@var MAX_WIDGET_WIDTH
@@ -91,7 +95,8 @@ class pyLoggerGui(stdGUI):
         self.start_button = StdButton(self.root, text='Start',
                                       command=self.start)
         self.stop_button = StdButton(self.root, text='Stop',
-                                     command=self.start)
+                                     command=self.start,
+                                     state=DISABLED)
         self.start_button.grid(row=2, column=0, pady=5)
         self.stop_button.grid(row=2, column=1, pady=5)
         ##Add a tool bar
@@ -103,6 +108,8 @@ class pyLoggerGui(stdGUI):
                                   command=self.about)
         #Add menu bar
         self.root.config(menu=self.menu_bar)
+        #Centre window
+        self.centre_window(self.root)
 
     def add_unit_frame(self, parent=None, id=1):
         """!
@@ -154,14 +161,6 @@ class pyLoggerGui(stdGUI):
             grid(row=2, columnspan=2, pady=20)
         return data_dict
 
-    def about(self, event=None):
-        """!
-        Display the information window for the software.
-        @param self The pointer for the object
-        @event The handle for the mouse click event
-        """
-        pass
-
 #Functional Methods###########################################################
 
     def start(self, event=None):
@@ -170,6 +169,57 @@ class pyLoggerGui(stdGUI):
     def stop(self, event=None):
         pass
 
+    def about(self, event=None):
+        """!
+        Display the information window for the software.
+        @param self The pointer for the object
+        @event The handle for the mouse click event
+        """
+        about_window = Toplevel(self.root, bg='white')
+        about_window.title('About')
+        #Create frames for use
+        about_frame = StdFrame(about_window)
+        version_frame = StdFrame(about_window)
+
+        #Add information to about frame
+        StdLabel(about_frame,
+                 text='pyLogger',
+                 font=tkFont.Font(family='Arial',
+                                  size='20',
+                                  weight='bold'),
+                 justify=CENTER,
+                 ).grid(row=0)
+        description = 'pyLogger is a simple data logging application.\n\n'\
+                      'pyLogger can communicate with a Mecmesin AFG \n'\
+                      'series load cell or a TSI 4000 '\
+                      'Series flow meter.\n\n'\
+                      'Author: Ben Johnston (ext 101859)\n'\
+                      'License: GNU GPL v2.0'
+        StdLabel(about_frame,
+                 text=description,
+                 justify=LEFT).grid(row=1, padx=5, pady=5)
+        StdLabel(about_frame,
+                 text='Version Information:',
+                 font=tkFont.Font(family='Arial',
+                                  size='16',
+                                  weight='bold'),
+                 justify=LEFT).grid(row=2, padx=5, pady=5,
+                                    sticky='W')
+        StdLabel(about_frame,
+                 text='Standard Toolbox Ver: %s' % std_rev,
+                 justify=LEFT).grid(row=3, sticky='W')
+        StdLabel(about_frame,
+                 text='TSI Driver Ver: %s' % TSI_rev,
+                 justify=LEFT).grid(row=4, sticky='W')
+        StdLabel(about_frame,
+                 text='AFG Driver Ver: %s' % 0.0,#AFG_rev,
+                 justify=LEFT).grid(row=5, sticky='W')
+
+        #Display frames
+        about_frame.grid()
+        version_frame.grid()
+        #Centre window
+        self.centre_window(about_window)
 
     def open_results(self):
         """!
