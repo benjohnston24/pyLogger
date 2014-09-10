@@ -17,6 +17,7 @@ from loggerUnit import UNIT_TYPES, CONNECTION_TYPES
 from Tkinter import Tk, Menu, StringVar, OptionMenu, Toplevel, CENTER, LEFT
 from Tkinter import DISABLED
 import tkFont
+import Queue
 import os
 import sys
 #Hardware imports
@@ -39,7 +40,13 @@ class pyLoggerGui(stdGUI):
 
 ##GUI Constructor Methods####################################################
 
-    def __init__(self, state_machine=None, version=None, debug_level=0):
+    def __init__(self,
+                 root=None,
+                 queue=None,
+                 version=None,
+                 start_command=None,
+                 reset_command=None,
+                 stop_command=None):
         """
         The constructor for the class
         @param self The pointer for the object
@@ -49,7 +56,7 @@ class pyLoggerGui(stdGUI):
         """
         ##@var root
         #The root window for the GUI
-        self.root = Tk()
+        self.root = root
         stdGUI.__init__(self, self.root)
         self.root.title('pyLogger')
         #Override the close window command
@@ -59,15 +66,15 @@ class pyLoggerGui(stdGUI):
         #Add the toolbar icon
         #self.icon = tkImage("photo", file="bird.gif")
         #self.root.tk.call("wm", "iconphoto", self.root._w, self.icon)
-        ##@var debug_level
-        #The debug_level object for the system
-        self.debug_level = debug_level
+        ##@var queue
+        #The queue object to pass information between threads
+        self.queue = queue
+        ##@var quit_command
+        #The command to stop threads
+        self.quit_command = stop_command
         ##@var version
         #The version number for the system
         self.version = version
-        ##@var state_machine
-        #The state machine object for the system
-        self.state_machine = state_machine
         #Create a text entry field to store the current filename for data
         self.file_name = StringVar()
         self.file_frame = StdFrame(self.root)
@@ -99,10 +106,9 @@ class pyLoggerGui(stdGUI):
 
         #Add start and stop buttons
         self.start_button = pyLoggerButton(self.root, text='Start',
-                                           command=self.start)
+                                           command=start_command)
         self.stop_button = pyLoggerButton(self.root, text='Stop',
-                                          command=self.start,
-                                          state=DISABLED)
+                                          command=reset_command)
         self.start_button.grid(row=2, column=0, pady=5)
         self.stop_button.grid(row=2, column=1, pady=5)
         ##Add a tool bar
@@ -118,17 +124,6 @@ class pyLoggerGui(stdGUI):
         self.centre_window(self.root)
         #Prevent resizing
         self.root.resizable(width=False, height=False)
-
-        ##@var cargo
-        #Information to be passed to the state machine
-        self.cargo = {'gui_object': self,
-                      'logger': logger(debug_level=self.debug_level),
-                      }
-        #Start the state_machine
-        self.root.after(1, self.start_state_machine)
-
-    def start_state_machine(self):
-        self.state_machine.run(self.cargo)
 
     def add_unit_frame(self, parent=None, id=1):
         """!
@@ -254,8 +249,17 @@ class pyLoggerGui(stdGUI):
         This module quits the program
         @param self The pointer for the object
         """
-        self.state_machine.stop()
+        self.quit_command()
         sys.exit()
 
-    def mainloop(self):
-        self.root.mainloop()
+    def process_incoming(self):
+        """!
+        Process information from the IO thread
+        @param self The pointer for the object
+        """
+        while self.queue.qsize():
+            try:
+                msg = self.queue.get()
+                print msg
+            except Queue.Empty:
+                pass

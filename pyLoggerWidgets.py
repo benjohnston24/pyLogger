@@ -8,7 +8,6 @@ __license__ = "GPL"
 
 ##IMPORT#####################################################################
 from stdtoolbox.stdGUI import StdButton
-import pdb
 #############################################################################
 
 
@@ -43,7 +42,6 @@ class pyLoggerButton(StdButton):
         """
         #If there is an operation event update the private variable
         if event is not None:
-            pdb.set_trace()
             self.__btn_activated = True
 
     def get_btn_status(self):
