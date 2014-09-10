@@ -8,17 +8,20 @@ __date__ = "Fri Sep  5 17:52:56 EST 2014"
 __license__ = "GPL"
 
 ##IMPORTS#####################################################################
-from stdtoolbox.stdGUI import stdGUI, StdLabelFrame, StdLabel, StdButton
+from stdtoolbox.stdGUI import stdGUI, StdLabelFrame, StdLabel
 from stdtoolbox.stdGUI import StdFrame, StdEntry
+from stdtoolbox.logging import logger
+from pyLoggerWidgets import pyLoggerButton
 from stdtoolbox import __revision__ as std_rev
 from loggerUnit import UNIT_TYPES, CONNECTION_TYPES
 from Tkinter import Tk, Menu, StringVar, OptionMenu, Toplevel, CENTER, LEFT
 from Tkinter import DISABLED
 import tkFont
 import os
+import sys
 #Hardware imports
 from TSI import __revision__ as TSI_rev
-#from AFG import __revision__ as AFG_rev
+from AFG import __revision__ as AFG_rev
 #If the system is a Windows OS import required packages
 if os.name == 'nt':
     import subprocess
@@ -36,7 +39,7 @@ class pyLoggerGui(stdGUI):
 
 ##GUI Constructor Methods####################################################
 
-    def __init__(self, version=None, debug_level=0):
+    def __init__(self, state_machine=None, version=None, debug_level=0):
         """
         The constructor for the class
         @param self The pointer for the object
@@ -50,7 +53,7 @@ class pyLoggerGui(stdGUI):
         stdGUI.__init__(self, self.root)
         self.root.title('pyLogger')
         #Override the close window command
-        #self.root.protocol('WM_DELETE_WINDOW', self._quit)
+        self.root.protocol('WM_DELETE_WINDOW', self._quit)
         #Prevent resizing
         #self.root.resizable(width=False, height=False)
         #Add the toolbar icon
@@ -62,6 +65,9 @@ class pyLoggerGui(stdGUI):
         ##@var version
         #The version number for the system
         self.version = version
+        ##@var state_machine
+        #The state machine object for the system
+        self.state_machine = state_machine
         #Create a text entry field to store the current filename for data
         self.file_name = StringVar()
         self.file_frame = StdFrame(self.root)
@@ -92,11 +98,11 @@ class pyLoggerGui(stdGUI):
             self.unit_frame_dict[-1]['frame'].grid(row=1, column=i)
 
         #Add start and stop buttons
-        self.start_button = StdButton(self.root, text='Start',
-                                      command=self.start)
-        self.stop_button = StdButton(self.root, text='Stop',
-                                     command=self.start,
-                                     state=DISABLED)
+        self.start_button = pyLoggerButton(self.root, text='Start',
+                                           command=self.start)
+        self.stop_button = pyLoggerButton(self.root, text='Stop',
+                                          command=self.start,
+                                          state=DISABLED)
         self.start_button.grid(row=2, column=0, pady=5)
         self.stop_button.grid(row=2, column=1, pady=5)
         ##Add a tool bar
@@ -110,6 +116,19 @@ class pyLoggerGui(stdGUI):
         self.root.config(menu=self.menu_bar)
         #Centre window
         self.centre_window(self.root)
+        #Prevent resizing
+        self.root.resizable(width=False, height=False)
+
+        ##@var cargo
+        #Information to be passed to the state machine
+        self.cargo = {'gui_object': self,
+                      'logger': logger(debug_level=self.debug_level),
+                      }
+        #Start the state_machine
+        self.root.after(1, self.start_state_machine)
+
+    def start_state_machine(self):
+        self.state_machine.run(self.cargo)
 
     def add_unit_frame(self, parent=None, id=1):
         """!
@@ -212,7 +231,7 @@ class pyLoggerGui(stdGUI):
                  text='TSI Driver Ver: %s' % TSI_rev,
                  justify=LEFT).grid(row=4, sticky='W')
         StdLabel(about_frame,
-                 text='AFG Driver Ver: %s' % 0.0,#AFG_rev,
+                 text='AFG Driver Ver: %s' % AFG_rev,
                  justify=LEFT).grid(row=5, sticky='W')
 
         #Display frames
@@ -223,7 +242,20 @@ class pyLoggerGui(stdGUI):
 
     def open_results(self):
         """!
+        This method is used to open the folder containing the results logs
+        @param self The pointer for the object
         """
         if os.name == 'nt':
             subprocess.Popen('explorer "{0}"'.format(os.getcwd() +
                              '\\results\\'))
+
+    def _quit(self):
+        """!
+        This module quits the program
+        @param self The pointer for the object
+        """
+        self.state_machine.stop()
+        sys.exit()
+
+    def mainloop(self):
+        self.root.mainloop()
