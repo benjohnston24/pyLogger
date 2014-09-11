@@ -74,6 +74,7 @@ class pyLoggerThread(processStateMachine):
         #A dictionary object used to pass data through the state machine
         self.cargo = {'gui_object': self.gui,
                       'logger': logger(debug_level=self.debug_level),
+                      'error_logger': logger('error.log', debug_level=2),
                       'debug_level': self.debug_level,
                       'queue': self.queue,
                       'queue_data': {'status': [None, None],

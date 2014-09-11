@@ -10,7 +10,8 @@ __license__ = "GPL"
 ##IMPORT#####################################################################
 from stdtoolbox.stateMachine import state, StateMachine
 from stdtoolbox.logging import csvLogger
-from loggerUnit import loggerUnit
+from loggerUnit import loggerUnit, CONNECTION_TYPES, ERROR
+import tkMessageBox
 import pdb
 #############################################################################
 
@@ -38,31 +39,52 @@ def system_setup(**kwargs):
                           debug_level=kwargs['debug_level'])
         kwargs['devices'][i] = unit
         i += 1
+
     #Connect the devices
-    i = 0
-    kwargs['queue_data']['status'] = [None, None]
-    for device in kwargs['devices']:
-        device.connect()
-        kwargs['queue_data']['status'][i] = device.connected
-        i += 1
-        #Update the display
+    try:
+        i = 0
+        kwargs['queue_data']['status'] = [None, None]
+        for device in kwargs['devices']:
+            device.connect()
+            kwargs['queue_data']['status'][i] = device.connected
+            i += 1
+            #Update the display
+            kwargs['queue'].put(kwargs['queue_data'])
+        kwargs['exit_status'] = state._SUCCESS
+        return kwargs
+    #Handle any errors
+    except Exception, e:
+        kwargs['queue_data']['status'][i] = CONNECTION_TYPES[ERROR]
         kwargs['queue'].put(kwargs['queue_data'])
-    kwargs['exit_status'] = state._SUCCESS
-    return kwargs
+        tkMessageBox.showerror('Connection Error:',
+                               e.__str__(),
+                               parent=kwargs['gui_object'].root)
+        kwargs['exit_status'] = state._ERROR
+        return kwargs
 
 
 def take_reading(**kwargs):
     kwargs['results'] = []
     kwargs['queue_data']['readings'] = [None, None]
     i = 0
-    for device in kwargs['devices']:
-        (result, display) = device.retrieve_measurement()
-        kwargs['results'].append(result)
-        kwargs['queue_data']['readings'][i] = display
-        i += 1
+    try:
+        for device in kwargs['devices']:
+            (result, display) = device.retrieve_measurement()
+            kwargs['results'].append(result)
+            kwargs['queue_data']['readings'][i] = display
+            i += 1
+            kwargs['queue'].put(kwargs['queue_data'])
+        kwargs['exit_status'] = state._SUCCESS
+        return kwargs
+    #Handle any errors
+    except Exception, e:
+        kwargs['queue_data']['status'][i] = CONNECTION_TYPES[ERROR]
         kwargs['queue'].put(kwargs['queue_data'])
-    kwargs['exit_status'] = state._SUCCESS
-    return kwargs
+        tkMessageBox.showerror('Measurement Error',
+                               e.__str__(),
+                               parent=kwargs['gui_object'].root)
+        kwargs['exit_status'] = state._ERROR
+        return kwargs
 
 
 def finalise_test(**kwargs):

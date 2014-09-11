@@ -13,9 +13,9 @@ __copyright__ = "Company Confidential. Copyright (c) ResMed Ltd 201[[3]."
 from TSI.TSIMeasure import TSIMeasure
 from AFG.AFGMeasure import AFGMeasure
 from stdtoolbox.logging import logger
-#Used to test program with "--None--" unit type
+import sys
+#Used to test program with "Dev" unit type
 import random
-import pdb
 ##############################################################################
 
 ##@var UNIT_TYPES
@@ -28,6 +28,9 @@ UNIT_TYPES = ["--None--", "Mecmesin Force Gauge", "TSI 4000 Flow Meter",
 #This variable stores a list of all connection types available to serial
 #devices
 CONNECTION_TYPES = ["Not Connected", "Connected", "Error"]
+
+##@VAR ERROR
+ERROR = 2
 
 
 #Define an exception class
@@ -92,6 +95,10 @@ class loggerUnit(object):
         ##@var info_logger
         #A logging object for the class
         self.info_logger = logger('info.log', debug_level=self.debug_level)
+        ##@var error_logger
+        #An error logging unit for the class
+        #Hard coded debug level to ensure logging to file
+        self.error_logger = logger('error.log', debug_level=2)
 
         #Create the device object
         if unit_type == UNIT_TYPES[0]:
@@ -144,7 +151,11 @@ class loggerUnit(object):
                 #Raise an exception if an error occured.  Wrap in loggerunit
                 #exception class
                 self.connected = CONNECTION_TYPES[2]
-                raise loggerUnitException(e.__str__())
+                msg = '<' + type(self).__name__ + '.' + \
+                    sys._getframe().f_code.co_name + \
+                    '> ' + str(e)
+                self.error_logger.info(msg, date_time_flag=True)
+                raise loggerUnitException(msg)
 
     def configure_device(self):
         """!
@@ -161,14 +172,22 @@ class loggerUnit(object):
         @return A dictionary containing each of the results.  The key is an
         indicator to the measurement type
         """
+        #if self.connected == CONNECTION_TYPES[0]:
+            #If the device is not connected return nothing
+        #    return (None, None)
+
+        #If the device is connected
         return_result = {}
         if self.unit_type == UNIT_TYPES[3]:
+            #If the selected device is the development device
+            #Return a random number
             return_result['random'] = \
                 round(random.randrange(1, 100) + random.random(), 2)
             self.info_logger.info('Measurement from %s: %0.2f' %
                                   (self.unit_type, return_result['random'])
                                   )
             return (return_result, return_result['random'])
+
         elif self.unit_type == UNIT_TYPES[0]:
             #If the none object is being used, do nothing
             return (None, None)
@@ -190,6 +209,10 @@ class loggerUnit(object):
                 else:
                     return (None, None)
             except Exception, e:
-                #Raise an exception if an error occured.  Wrap in loggerunit
+                #Raise an exception if an error occured.  Wrap in loggeruni
                 #exception class
-                raise loggerUnitException(e.__str__())
+                msg = '<' + type(self).__name__ + '.' + \
+                    sys._getframe().f_code.co_name + \
+                    '> ' + str(e)
+                self.error_logger.info(msg, date_time_flag=True)
+                raise loggerUnitException(msg)
