@@ -9,6 +9,9 @@ __license__ = "GPL"
 
 ##IMPORT#####################################################################
 from stdtoolbox.stateMachine import state, StateMachine
+from stdtoolbox.logging import csvLogger
+from loggerUnit import loggerUnit
+import pdb
 #############################################################################
 
 
@@ -21,12 +24,43 @@ def system_setup(**kwargs):
     @return A pointer to the structure passed to the function, containing
     updated data.
     """
-    #Wait for user input
+    #Collect the user input
+    file_name = kwargs['gui_object'].file_name.get()
+    #Construct the data logging object
+    kwargs['data_logger'] = csvLogger(file_name,
+                                      debug_level=kwargs['debug_level'])
+
+    #Construct the device objects
+    kwargs['devices'] = [None, None]
+    i = 0
+    for device in (kwargs['gui_object'].unit_frame_dict):
+        unit = loggerUnit(unit_type=device['unit'].get(),
+                          debug_level=kwargs['debug_level'])
+        kwargs['devices'][i] = unit
+        i += 1
+    #Connect the devices
+    i = 0
+    kwargs['queue_data']['status'] = [None, None]
+    for device in kwargs['devices']:
+        device.connect()
+        kwargs['queue_data']['status'][i] = device.connected
+        i += 1
+        #Update the display
+        kwargs['queue'].put(kwargs['queue_data'])
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
 
 
 def take_reading(**kwargs):
+    kwargs['results'] = []
+    kwargs['queue_data']['readings'] = [None, None]
+    i = 0
+    for device in kwargs['devices']:
+        (result, display) = device.retrieve_measurement()
+        kwargs['results'].append(result)
+        kwargs['queue_data']['readings'][i] = display
+        i += 1
+        kwargs['queue'].put(kwargs['queue_data'])
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
 

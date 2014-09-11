@@ -6,19 +6,23 @@ the different types of hardware device to be used in the system
 """
 __author__ = "Ben Johnston"
 __revision__ = "0.1"
-__date__ = "Mon Sep  8 08:36:23 EST 2014"
-__copyright__ = "Company Confidential. Copyright (c) ResMed Ltd 2014."
+__date__ = "Mon Sep  8 08:36:23 EST 201[[3]"
+__copyright__ = "Company Confidential. Copyright (c) ResMed Ltd 201[[3]."
 
 ##IMPORTS#####################################################################
 from TSI.TSIMeasure import TSIMeasure
 from AFG.AFGMeasure import AFGMeasure
 from stdtoolbox.logging import logger
+#Used to test program with "--None--" unit type
+import random
 import pdb
 ##############################################################################
 
 ##@var UNIT_TYPES
 #This variable is a list of all devices available for use in the system
-UNIT_TYPES = ["--None--", "Mecmesin Force Gauge", "TSI 4000 Flow Meter"]
+UNIT_TYPES = ["--None--", "Mecmesin Force Gauge", "TSI 4000 Flow Meter",
+              "Dev",
+              ]
 
 ##@var CONNECTION_TYPES
 #This variable stores a list of all connection types available to serial
@@ -90,46 +94,56 @@ class loggerUnit(object):
         self.info_logger = logger('info.log', debug_level=self.debug_level)
 
         #Create the device object
-        if unit_type is UNIT_TYPES[0]:
+        if unit_type == UNIT_TYPES[0]:
             ##@var device
             #The handle for the logging device
             #If no type is selected a handle of None is used
             self.device = None
             ##@var connected
             #A connection status flag for the object
-            self.connected = None
-        elif unit_type is UNIT_TYPES[1]:
+            self.connected = CONNECTION_TYPES[0]
+        elif unit_type == UNIT_TYPES[1]:
             #The force gauge device handle
-            self.connected = False
-        elif unit_type is UNIT_TYPES[2]:
+            self.connected = CONNECTION_TYPES[0]
+        elif unit_type == UNIT_TYPES[2]:
             #The flow meter device handle
-            self.connected = False
+            self.connected = CONNECTION_TYPES[0]
+        elif unit_type == UNIT_TYPES[3]:
+            #Debbuging unit type
+            self.device = None
+            self.connected = CONNECTION_TYPES[0]
 
     def connect(self):
         """!
         This method is used to connect to the device being used
         """
-        if self.unit_type is UNIT_TYPES[0]:
+        if self.unit_type == UNIT_TYPES[3]:
+            self.info_logger.info('%s: Connected' % self.unit_type)
             #If the none object is being used, do nothing
+            self.connected = CONNECTION_TYPES[1]
             return
+        elif self.unit_type == UNIT_TYPES[0]:
+            #If None is selected do nothing
+            pass
         else:
             try:
-                if self.unit_type is UNIT_TYPES[1]:
+                if self.unit_type == UNIT_TYPES[1]:
                     #Use the force gauge type
                     self.device = AFGMeasure(self.serial_port,
                                              self.debug_level)
-                elif self.unit_type is UNIT_TYPES[2]:
+                elif self.unit_type == UNIT_TYPES[2]:
                     #Use the flow meter
                     self.device = TSIMeasure(self.serial_port,
                                              self.debug_level)
                 #Connect to the device
                 if self.device.port is not None:
-                    self.connected = True
+                    self.connected = CONNECTION_TYPES[1]
                 else:
-                    self.connected = False
+                    self.connected = CONNECTION_TYPES[0]
             except Exception, e:
                 #Raise an exception if an error occured.  Wrap in loggerunit
                 #exception class
+                self.connected = CONNECTION_TYPES[2]
                 raise loggerUnitException(e.__str__())
 
     def configure_device(self):
@@ -148,20 +162,33 @@ class loggerUnit(object):
         indicator to the measurement type
         """
         return_result = {}
-        if self.unit_type is UNIT_TYPES[0]:
+        if self.unit_type == UNIT_TYPES[3]:
+            return_result['random'] = \
+                round(random.randrange(1, 100) + random.random(), 2)
+            self.info_logger.info('Measurement from %s: %0.2f' %
+                                  (self.unit_type, return_result['random'])
+                                  )
+            return (return_result, return_result['random'])
+        elif self.unit_type == UNIT_TYPES[0]:
             #If the none object is being used, do nothing
-            return
+            return (None, None)
         else:
             try:
-                if self.unit_type is UNIT_TYPES[1]:
+                if self.unit_type == UNIT_TYPES[1]:
                     #Use the force gauge type
                     #Take a single reading
                     return_result['force/torque'] = \
                         self.device.get_measurement()
-                elif self.unit_type is UNIT_TYPES[2]:
+                    display_result = return_result['force/torque']
+                    return (return_result, display_result)
+                elif self.unit_type == UNIT_TYPES[2]:
                     #Use the flow meter
                     #Take a single reading
                     return_result = self.device.measure_FTP()
+                    display_result = return_result['flow']
+                    return (return_result, display_result)
+                else:
+                    return (None, None)
             except Exception, e:
                 #Raise an exception if an error occured.  Wrap in loggerunit
                 #exception class

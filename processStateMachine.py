@@ -150,6 +150,7 @@ class processStateMachine(StateMachine):
             self.cargo = self.stack[self.current_state].\
                 executeState(self.cargo)
 
+            self.queue.put(self.cargo['queue_data'])
             if self.current_state != self._COMPLETE_STATE:
                 self.current_state = self.stack[self.current_state].\
                     next_state[self.cargo['exit_status']]

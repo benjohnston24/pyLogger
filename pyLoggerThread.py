@@ -11,9 +11,9 @@ __license__ = "GPL"
 from processStateMachine import processStateMachine
 from pyLoggerGui import pyLoggerGui
 from stdtoolbox.logging import logger
+import tkMessageBox
 import Queue
 import threading
-import sys
 ##############################################################################
 
 
@@ -54,6 +54,10 @@ class pyLoggerThread(processStateMachine):
         #Create the Queue object for sharing information between threads
         self.queue = Queue.Queue()
 
+        ##@var root
+        #The root window for the GUI
+        self.root = root
+
         ##@var gui
         #The pyLoggerGui object for the class
         self.gui = pyLoggerGui(root,
@@ -68,7 +72,14 @@ class pyLoggerThread(processStateMachine):
 
         ##@var cargo
         #A dictionary object used to pass data through the state machine
-        self.cargo = {'logger': logger(debug_level=self.debug_level)}
+        self.cargo = {'gui_object': self.gui,
+                      'logger': logger(debug_level=self.debug_level),
+                      'debug_level': self.debug_level,
+                      'queue': self.queue,
+                      'queue_data': {'status': [None, None],
+                                     'readings': [None, None]
+                                     },
+                      }
 
         #Monitor process queue
         self.monitor()
@@ -98,20 +109,31 @@ class pyLoggerThread(processStateMachine):
             self.cargo = self.stack[self.current_state].\
                 executeState(self.cargo)
 
+            #Update the queue
+            #self.queue.put(self.cargo['queue_data'])
+
             if self.current_state != self._COMPLETE_STATE:
                 self.current_state = self.stack[self.current_state].\
                     next_state[self.cargo['exit_status']]
 
+        self.current_state = self.initial_state
+        self.cargo['current_state'] = ''
         self.cargo['logger'].info('Stopping State Machine')
 
     def start(self):
         """!
         """
-        ##@var worker
-        #A thread object to execute the worker thread
-        self.worker = threading.Thread(target=self.run)
-        self.run_status = self.RUNNING
-        self.worker.start()
+        if self.gui.validate_inputs():
+            ##@var worker
+            #A thread object to execute the worker thread
+            self.worker = threading.Thread(target=self.run)
+            self.run_status = self.RUNNING
+            #Start the thread
+            self.worker.start()
+        else:
+            tkMessageBox.showinfo('Missing Information',
+                                  'File name required',
+                                  parent=self.root)
 
     def stop(self):
         """!

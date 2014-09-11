@@ -10,16 +10,15 @@ __license__ = "GPL"
 ##IMPORTS#####################################################################
 from stdtoolbox.stdGUI import stdGUI, StdLabelFrame, StdLabel
 from stdtoolbox.stdGUI import StdFrame, StdEntry
-from stdtoolbox.logging import logger
 from pyLoggerWidgets import pyLoggerButton
 from stdtoolbox import __revision__ as std_rev
 from loggerUnit import UNIT_TYPES, CONNECTION_TYPES
-from Tkinter import Tk, Menu, StringVar, OptionMenu, Toplevel, CENTER, LEFT
-from Tkinter import DISABLED
+from Tkinter import Menu, StringVar, OptionMenu, Toplevel, CENTER, LEFT
 import tkFont
 import Queue
 import os
 import sys
+import pdb
 #Hardware imports
 from TSI import __revision__ as TSI_rev
 from AFG import __revision__ as AFG_rev
@@ -93,12 +92,12 @@ class pyLoggerGui(stdGUI):
         self.file_frame.grid(row=0, columnspan=2,
                              sticky='W', pady=5)
         #Generate frames
-        number_of_units = 2
+        self.number_of_units = 2
         #Create arrays to store dynamic interface components for each logger
         #unit
         self.unit_frame_dict = []
         #Update the selections and status variables in self.add_unit_frame
-        for i in range(number_of_units):
+        for i in range(self.number_of_units):
             self.unit_frame_dict.append(self.add_unit_frame(self.root, i + 1))
             #Append to arrays
             #Display frame
@@ -121,7 +120,7 @@ class pyLoggerGui(stdGUI):
         #Add menu bar
         self.root.config(menu=self.menu_bar)
         #Centre window
-        self.centre_window(self.root)
+        #self.centre_window(self.root)
         #Prevent resizing
         self.root.resizable(width=False, height=False)
 
@@ -259,7 +258,43 @@ class pyLoggerGui(stdGUI):
         """
         while self.queue.qsize():
             try:
-                msg = self.queue.get()
-                print msg
+                data = self.queue.get()
+                #Scroll through each of the unit windows
+                for i in range(len(data['status'])):
+                    #Update the connection status variable
+                    status = data['status'][i]
+                    if status is not None:
+                        self.unit_frame_dict[i]['status'].set(
+                            status)
+                    #Update the colour fo the status message
+                    if status == CONNECTION_TYPES[1]:
+                        status_colour = 'green'
+                    else:
+                        status_colour = 'red'
+                    #Commit the update
+                    self.unit_frame_dict[i]['status_widget'].\
+                        configure(fg=status_colour)
+
+                for i in range(len(data['readings'])):
+                    #Update the reading variable
+                    reading = data['readings'][i]
+                    if reading is not None:
+                        self.unit_frame_dict[i]['reading'].set(
+                            '%0.2f' % reading)
+
             except Queue.Empty:
                 pass
+            except Exception, e:
+                pdb.set_trace()
+
+    def validate_inputs(self):
+        """!
+        Validate the user inputs prior to starting measurements
+        @param self The pointer for the object
+        @return True if the inputs are valid, False if not.
+        """
+        #The file name cannot be blank
+        if self.file_name.get() is '':
+            return False
+        else:
+            return True
