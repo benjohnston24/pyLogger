@@ -43,6 +43,7 @@ class pyLoggerGui(stdGUI):
                  root=None,
                  queue=None,
                  version=None,
+                 log_folder=None,
                  start_command=None,
                  reset_command=None,
                  stop_command=None,
@@ -81,6 +82,9 @@ class pyLoggerGui(stdGUI):
         #Create a text entry field to store the current filename for data
         self.file_name = StringVar()
         self.file_frame = StdFrame(self.root)
+        ##@var log_folder
+        #The folder where results are stored
+        self.log_folder = log_folder
         StdLabel(self.file_frame,
                  text='File Name:', justify='left').\
             grid(row=0, column=0, sticky='W')
@@ -244,8 +248,8 @@ class pyLoggerGui(stdGUI):
         @param self The pointer for the object
         """
         if os.name == 'nt':
-            subprocess.Popen('explorer "{0}"'.format(os.getcwd() +
-                             '\\results\\'))
+            self.debug_logger.info(self.log_folder)
+            subprocess.Popen('explorer "{0}"'.format(self.log_folder))
 
     def _quit(self):
         """!

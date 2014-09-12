@@ -15,7 +15,6 @@ import tkMessageBox
 import Queue
 import threading
 import os
-import pdb
 ##############################################################################
 
 ##@var LOG_FOLDER
@@ -72,6 +71,7 @@ class pyLoggerThread(processStateMachine):
         self.gui = pyLoggerGui(root=root,
                                queue=self.queue,
                                version=version,
+                               log_folder=LOG_FOLDER,
                                start_command=self.start,
                                reset_command=self.stop,
                                stop_command=self.stop,
