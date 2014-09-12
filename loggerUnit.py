@@ -16,7 +16,6 @@ from stdtoolbox.logging import logger
 import sys
 #Used to test program with "Dev" unit type
 import random
-import pdb
 ##############################################################################
 
 ##@var UNIT_TYPES
@@ -257,5 +256,6 @@ class loggerUnit(object):
         Close the port of the device
         @param self The pointer for the object
         """
-        if self.unit_type != UNIT_TYPES[NO_TYPE]:
+        if (self.unit_type != UNIT_TYPES[NO_TYPE] and
+                self.unit_type != UNIT_TYPES[DEV_TYPE]):
             self.device.device.close()

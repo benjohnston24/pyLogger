@@ -15,6 +15,7 @@ from stdtoolbox import __revision__ as std_rev
 from stdtoolbox.logging import logger
 from loggerUnit import UNIT_TYPES, CONNECTION_TYPES
 from Tkinter import Menu, StringVar, OptionMenu, Toplevel, CENTER, LEFT
+from Tkinter import Image as tkImage
 import tkFont
 import Queue
 import os
@@ -66,10 +67,10 @@ class pyLoggerGui(stdGUI):
         #Override the close window command
         self.root.protocol('WM_DELETE_WINDOW', self._quit)
         #Prevent resizing
-        #self.root.resizable(width=False, height=False)
+        self.root.resizable(width=False, height=False)
         #Add the toolbar icon
-        #self.icon = tkImage("photo", file="bird.gif")
-        #self.root.tk.call("wm", "iconphoto", self.root._w, self.icon)
+        self.icon = tkImage("photo", file="pyLogger.gif")
+        self.root.tk.call("wm", "iconphoto", self.root._w, self.icon)
         ##@var queue
         #The queue object to pass information between threads
         self.queue = queue
@@ -111,6 +112,13 @@ class pyLoggerGui(stdGUI):
             #Display frame
             self.unit_frame_dict[-1]['frame'].grid(row=1, column=i)
 
+        #Add help frame
+        self.add_help_frame(self.root).grid(row=0,
+                                            column=i + 1,
+                                            rowspan=2,
+                                            padx=10,
+                                            pady=10,
+                                            sticky='N')
         #Add start and stop buttons
         self.start_button = pyLoggerButton(self.root, text='Start',
                                            command=start_command)
@@ -182,6 +190,68 @@ class pyLoggerGui(stdGUI):
             grid(row=2, columnspan=2, pady=20)
         return data_dict
 
+    def add_help_frame(self, parent=None):
+        """!
+        This frame provide a simple usage instructions
+        """
+        normal_size = 9
+        help_frame = StdFrame(parent)
+        StdLabel(help_frame,
+                 text='How To Use pyLogger',
+                 font=tkFont.Font(family='Arial',
+                                  size=14,
+                                  weight='bold'),
+                 ).grid(row=0, sticky='W')
+        StdLabel(help_frame,
+                 text='1. Connect the required USB/serial adaptors\n'
+                      'and corresponding serial cables.',
+                 font=tkFont.Font(family='Arial',
+                                  size=normal_size),
+                 justify=LEFT,
+                 ).grid(row=1, sticky='W')
+        StdLabel(help_frame,
+                 text='2. If using Mecmesin Force Gauge.  Press and\n'
+                      'hold TXD until Tx is displayed on the LCD Screen.\n'
+                      'If Tx is already displayed continue.',
+                 font=tkFont.Font(family='Arial',
+                                  size=normal_size),
+                 justify=LEFT
+                 ).grid(row=2, sticky='W')
+        StdLabel(help_frame,
+                 text='3. Select the device type(s) in the drop down menus\n'
+                      'that are to be used during logging.',
+                 font=tkFont.Font(family='Arial',
+                                  size=normal_size),
+                 justify=LEFT
+                 ).grid(row=3, sticky='W')
+        StdLabel(help_frame,
+                 text='4. Enter a file name for the log file.',
+                 font=tkFont.Font(family='Arial',
+                                  size=normal_size),
+                 justify=LEFT
+                 ).grid(row=4, sticky='W')
+        StdLabel(help_frame,
+                 text='5. Click Start to begin logging',
+                 font=tkFont.Font(family='Arial',
+                                  size=normal_size),
+                 justify=LEFT
+                 ).grid(row=5, sticky='W')
+        StdLabel(help_frame,
+                 text='6. Click Stop when done',
+                 font=tkFont.Font(family='Arial',
+                                  size=normal_size),
+                 justify=LEFT
+                 ).grid(row=6, sticky='W')
+        StdLabel(help_frame,
+                 text='7. Use the Results Folder tool bar option\n'
+                      ' to access the log file',
+                 font=tkFont.Font(family='Arial',
+                                  size=normal_size),
+                 justify=LEFT
+                 ).grid(row=7, sticky='W')
+
+        return help_frame
+
 #Functional Methods###########################################################
 
     def start(self, event=None):
@@ -198,6 +268,8 @@ class pyLoggerGui(stdGUI):
         """
         about_window = Toplevel(self.root, bg='white')
         about_window.title('About')
+        #Add the toolbar icon
+        about_window.tk.call("wm", "iconphoto", about_window._w, self.icon)
         #Create frames for use
         about_frame = StdFrame(about_window)
         version_frame = StdFrame(about_window)
@@ -227,14 +299,17 @@ class pyLoggerGui(stdGUI):
                  justify=LEFT).grid(row=2, padx=5, pady=5,
                                     sticky='W')
         StdLabel(about_frame,
-                 text='Standard Toolbox Ver: %s' % std_rev,
+                 text='pyLogger Ver: %s' % self.version,
                  justify=LEFT).grid(row=3, sticky='W')
         StdLabel(about_frame,
-                 text='TSI Driver Ver: %s' % TSI_rev,
+                 text='Standard Toolbox Ver: %s' % std_rev,
                  justify=LEFT).grid(row=4, sticky='W')
         StdLabel(about_frame,
-                 text='AFG Driver Ver: %s' % AFG_rev,
+                 text='TSI Driver Ver: %s' % TSI_rev,
                  justify=LEFT).grid(row=5, sticky='W')
+        StdLabel(about_frame,
+                 text='AFG Driver Ver: %s' % AFG_rev,
+                 justify=LEFT).grid(row=6, sticky='W')
 
         #Display frames
         about_frame.grid()
@@ -266,7 +341,6 @@ class pyLoggerGui(stdGUI):
         """
         while self.queue.qsize():
             self.debug_logger.info('Got data')
-            #pdb.set_trace()
             try:
                 data = self.queue.get()
                 #Scroll through each of the unit windows

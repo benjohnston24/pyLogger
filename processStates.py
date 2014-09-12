@@ -90,6 +90,8 @@ def configure_system(**kwargs):
     if os.path.isfile(kwargs['file_name']):
         #Set the write header flag
         write_header = True
+    else:
+        write_header = False
     kwargs['results_log'] = csvLogger(kwargs['file_name'],
                                       debug_level=kwargs['debug_level'],
                                       header=kwargs['header'])
