@@ -366,8 +366,6 @@ class pyLoggerGui(stdGUI):
                     if reading is not None:
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
-                    #else:
-                    #    pdb.set_trace()
 
             except Queue.Empty:
                 pass

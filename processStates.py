@@ -14,7 +14,7 @@ from loggerUnit import loggerUnit, CONNECTION_TYPES, ERROR,\
     UNIT_TYPES, CONNECTED, DEV_TYPE, NO_TYPE, AFG, TSI
 import tkMessageBox
 import os
-import thread
+import threading
 import Queue
 import time
 import pdb
@@ -108,24 +108,32 @@ def configure_system(**kwargs):
 
 def measurement_thread(thread_id, device, queue):
     result_dict = {}
-    result_dict[thread_id] = device.retrieve_measurement()
-    queue.put(result_dict)
+    result_dict[thread_id] = []
+    try:
+        result_dict[thread_id] = device.retrieve_measurement()
+        queue.put(result_dict)
+    except:
+        result_dict[thread_id]['error'] = 1
 
 
 def take_reading(**kwargs):
     kwargs['start'] = time.time()
-    kwargs['results'] = []
     kwargs['results_queue'] = Queue.Queue()
     i = 0
     try:
+        #Create an array of worker threads to execute the measurements
         kwargs['workers'] = []
         for device in kwargs['devices']:
-            worker = thread.Threading(target=measurement_thread,
+            worker = threading.Thread(target=measurement_thread,
                                       args=[i, device,
                                             kwargs['results_queue']])
             worker.start()
             kwargs['workers'].append(worker)
             i += 1
+
+        #Wait for the measurement threads to stop
+        for worker in kwargs['workers']:
+            worker.join()
         kwargs['exit_status'] = state._SUCCESS
         return kwargs
 
@@ -141,9 +149,26 @@ def take_reading(**kwargs):
         return kwargs
 
 
+def process_results(**kwargs):
+    """!
+    Process the results obtained from the measurements for logging
+    """
+    #Create an array of empty dictionaries for storing data
+    kwargs['results'] = [{} for x in range(kwargs['results_queue'].qsize())]
+    while kwargs['results_queue'].qsize():
+        try:
+            data = kwargs['results_queue'].get()
+            pdb.set_trace()
+        except Queue.Empty:
+            pass
+    kwargs['exit_status'] = state._SUCCESS
+    return
+
+
 def log_reading(**kwargs):
     data_to_write = []
-    for 
+    kwargs['finish'] = time.time()
+    print (kwargs['finish'] - kwargs['start'])
     for result in kwargs['results']:
         if result is not None:
             keys = result.keys()
@@ -161,8 +186,8 @@ def log_reading(**kwargs):
     #Write the data
     kwargs['results_log'].write_line(data_to_write,
                                      date_time_flag=True)
-    kwargs['finish'] = time.time()
-    print (kwargs['finish'] - kwargs['start'])
+    kwargs['finish2'] = time.time()
+    print (kwargs['finish2'] - kwargs['finish'])
     pdb.set_trace()
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
@@ -179,6 +204,7 @@ def handle_error(**kwargs):
 system_setup_state = state(system_setup, "Setup System")
 configure_state = state(configure_system, "Configure System")
 measure_state = state(take_reading, "Complete Measurement")
-process_state = state(log_reading, "Data Logging")
+process_state = state(process_results, "Process Data")
+log_state = state(log_reading, "Log Data")
 complete_state = state(finalise_test, StateMachine._COMPLETE_STATE)
 error_state = state(handle_error, StateMachine._ERROR_STATE)
