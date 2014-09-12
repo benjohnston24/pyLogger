@@ -9,23 +9,25 @@ __license__ = "GPL"
 
 ##IMPORTS#####################################################################
 import argparse
-from pyLoggerGui import pyLoggerGui
-from processStateMachine import processStateMachine
-#from AFG import AFG
+from pyLoggerThread import pyLoggerThread
+from Tkinter import Tk
 ##############################################################################
 
 #Process command line arguments
 parser = argparse.ArgumentParser()
-#parser.add_argument('-p', '--port', help="Select COM port e.g. 3")
-#parser.add_argument('-l', '--log', action='store_true',
-#                    default=False, help="Enable debug / error logging")
-#parser.add_argument('-b', '--beep', action='store_true',
-#                    default=False, help="Enable beep on level")
-#parser.add_argument('-c', '--criteria', help='Define the levels for activating'
-#                    ' the beep.  Enter as integers', nargs='+')
-#args = parser.parse_args()
+parser.add_argument('-l', '--log', action='store_true',
+                    default=False, help="Status / Error logging")
+parser.add_argument('-d', '--debug'=, action='store_true',
+                    default=False, help='Enable debug messages')
+args = parser.parse_args()
+
+debug_level = 0
+if args.debug:
+    debug_level = 1
+elif args.log:
+    debug_level = 2
 
 #Run Script
-stateMachine = processStateMachine(debug_level=1)
-gui = pyLoggerGui(state_machine=stateMachine, debug_level=1)
-gui.mainloop()
+root = Tk()
+pyLoggerThread(root, debug_level=debug_level)
+root.mainloop()

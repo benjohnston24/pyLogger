@@ -10,11 +10,10 @@ __license__ = "GPL"
 ##IMPORT#####################################################################
 from stdtoolbox.stateMachine import state, StateMachine
 from stdtoolbox.logging import csvLogger
-from loggerUnit import loggerUnit, CONNECTION_TYPES, ERROR, NOT_CONNECTED,\
+from loggerUnit import loggerUnit, CONNECTION_TYPES, ERROR,\
     UNIT_TYPES, CONNECTED, DEV_TYPE, NO_TYPE, AFG, TSI
 import tkMessageBox
-import pdb
-import time
+import os
 #############################################################################
 
 
@@ -28,7 +27,9 @@ def system_setup(**kwargs):
     updated data.
     """
     #Collect the user input
-    kwargs['file_name'] = kwargs['gui_object'].file_name.get()
+    kwargs['file_name'] = kwargs['log_folder'] + \
+                          kwargs['gui_object'].file_name.get() + \
+                          '.csv'
 
     #Construct the device objects
     kwargs['devices'] = [None, None]
@@ -86,17 +87,21 @@ def configure_system(**kwargs):
             for dat_type in device.results_types:
                 kwargs['header'].append(dat_type)
     #Setup the data logging object
-    kwargs['results_log'] = csvLogger(kwargs['log_folder'] +
-                                      kwargs['file_name'] + '.csv',
+    if os.path.isfile(kwargs['file_name']):
+        #Set the write header flag
+        write_header = True
+    kwargs['results_log'] = csvLogger(kwargs['file_name'],
                                       debug_level=kwargs['debug_level'],
                                       header=kwargs['header'])
+    if write_header:
+        kwargs['results_log'].write_line(kwargs['header'],
+                                         date_time_flag=False)
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
 
 
 def take_reading(**kwargs):
     kwargs['results'] = []
-    kwargs['queue_data']['readings'] = [None, None]
     i = 0
     try:
         for device in kwargs['devices']:
@@ -138,11 +143,7 @@ def log_reading(**kwargs):
     #Write the data
     kwargs['results_log'].write_line(data_to_write,
                                      date_time_flag=True)
-
-
-
     kwargs['exit_status'] = state._SUCCESS
-    time.sleep(1)
     return kwargs
 
 

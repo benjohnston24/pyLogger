@@ -5,7 +5,7 @@ This module will provide a common interface between the processStates,GUI and
 the different types of hardware device to be used in the system
 """
 __author__ = "Ben Johnston"
-__revision__ = "0.1"
+__revision__ = "0.2"
 __date__ = "Mon Sep  8 08:36:23 EST 2014"
 __copyright__ = "Company Confidential. Copyright (c) ResMed Ltd 201[[3]."
 
@@ -16,6 +16,7 @@ from stdtoolbox.logging import logger
 import sys
 #Used to test program with "Dev" unit type
 import random
+import pdb
 ##############################################################################
 
 ##@var UNIT_TYPES
@@ -234,7 +235,10 @@ class loggerUnit(object):
                 elif self.unit_type == UNIT_TYPES[TSI]:
                     #Use the flow meter
                     #Take a single reading
-                    return_result = self.device.measure_FTP()
+                    return_result = {}
+                    result = self.device.measure_FTP()
+                    for key in result.keys():
+                        return_result[key] = result[key][0]
                     display_result = return_result['flow']
                     return (return_result, display_result)
                 else:

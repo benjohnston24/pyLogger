@@ -19,7 +19,6 @@ import tkFont
 import Queue
 import os
 import sys
-import pdb
 #Hardware imports
 from TSI import __revision__ as TSI_rev
 from AFG import __revision__ as AFG_rev
@@ -46,7 +45,8 @@ class pyLoggerGui(stdGUI):
                  version=None,
                  start_command=None,
                  reset_command=None,
-                 stop_command=None):
+                 stop_command=None,
+                 debug_level=0):
         """
         The constructor for the class
         @param self The pointer for the object
@@ -54,8 +54,8 @@ class pyLoggerGui(stdGUI):
         @param debug_level Control debugging functionality of the class.  Is
         derived from toolbox.logger debug_level.
         """
-        ##TEMP###
-        self.debug_logger = logger('guilog.info',debug_level=2)
+        #Log for debugging
+        self.debug_logger = logger('guilog.info', debug_level=debug_level)
 
         ##@var root
         #The root window for the GUI
@@ -261,12 +261,10 @@ class pyLoggerGui(stdGUI):
         @param self The pointer for the object
         """
         while self.queue.qsize():
-            pdb.set_trace()
             self.debug_logger.info('Got data')
+            #pdb.set_trace()
             try:
                 data = self.queue.get()
-                for dat in data:
-                    self.debug_logger.info(dat)
                 #Scroll through each of the unit windows
                 for i in range(len(data['status'])):
                     #Update the connection status variable
@@ -286,12 +284,12 @@ class pyLoggerGui(stdGUI):
                 for i in range(len(data['readings'])):
                     #Update the reading variable
                     reading = data['readings'][i]
+                    self.debug_logger.info(str(reading))
                     if reading is not None:
-                        print reading
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
-                    else:
-                        pdb.set_trace()
+                    #else:
+                    #    pdb.set_trace()
 
             except Queue.Empty:
                 pass
