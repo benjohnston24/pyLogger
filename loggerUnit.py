@@ -251,3 +251,11 @@ class loggerUnit(object):
                     '> ' + str(e)
                 self.error_logger.info(msg, date_time_flag=True)
                 raise loggerUnitException(msg)
+
+    def close_port(self):
+        """!
+        Close the port of the device
+        @param self The pointer for the object
+        """
+        if self.unit_type != UNIT_TYPES[NO_TYPE]:
+            self.device.device.close()

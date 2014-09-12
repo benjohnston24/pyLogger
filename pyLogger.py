@@ -3,7 +3,7 @@
 Mecmesin load cell data logger
 """
 __author__ = "Ben Johnston"
-__revision__ = "0.1"
+__revision__ = "0.2"
 __date__ = ""
 __license__ = "GPL"
 
@@ -17,7 +17,7 @@ from Tkinter import Tk
 parser = argparse.ArgumentParser()
 parser.add_argument('-l', '--log', action='store_true',
                     default=False, help="Status / Error logging")
-parser.add_argument('-d', '--debug'=, action='store_true',
+parser.add_argument('-d', '--debug', action='store_true',
                     default=False, help='Enable debug messages')
 args = parser.parse_args()
 
@@ -29,5 +29,5 @@ elif args.log:
 
 #Run Script
 root = Tk()
-pyLoggerThread(root, debug_level=debug_level)
+pyLoggerThread(root=root, version=__revision__, debug_level=debug_level)
 root.mainloop()

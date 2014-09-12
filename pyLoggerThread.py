@@ -15,6 +15,7 @@ import tkMessageBox
 import Queue
 import threading
 import os
+import pdb
 ##############################################################################
 
 ##@var LOG_FOLDER
@@ -45,7 +46,7 @@ class pyLoggerThread(processStateMachine):
     #Constant used to indicate the state machine is in an idle state
     IDLE = 3
 
-    def __init__(self, root=None, debug_level=0):
+    def __init__(self, root=None, version=None, debug_level=0):
         """!
         The constructor for the class
         @param self The pointer for the object
@@ -68,11 +69,13 @@ class pyLoggerThread(processStateMachine):
 
         ##@var gui
         #The pyLoggerGui object for the class
-        self.gui = pyLoggerGui(root,
-                               self.queue,
+        self.gui = pyLoggerGui(root=root,
+                               queue=self.queue,
+                               version=version,
                                start_command=self.start,
                                reset_command=self.stop,
-                               stop_command=self.stop)
+                               stop_command=self.stop,
+                               debug_level=debug_level)
 
         ##@var run_status
         #Used to control the operation of the thread
@@ -126,6 +129,9 @@ class pyLoggerThread(processStateMachine):
                 self.current_state = self.stack[self.current_state].\
                     next_state[self.cargo['exit_status']]
 
+        #Close all ports
+        for log_device in self.cargo['devices']:
+            log_device.close_port()
         self.current_state = self.initial_state
         self.cargo['current_state'] = ''
         self.cargo['logger'].info('Stopping State Machine')
