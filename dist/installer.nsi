@@ -18,7 +18,7 @@
 !define INSTALL_FOLDER "pyLogger"
 # These three must be integers
 !define VERSIONMAJOR 0
-!define VERSIONMINOR 1
+!define VERSIONMINOR 2
 !define VERSIONBUILD 0
 # This is the size (in kB) of all the files copied into "Program Files"
 !define INSTALLSIZE 16400 
