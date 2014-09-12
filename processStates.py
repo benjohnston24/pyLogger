@@ -14,6 +14,10 @@ from loggerUnit import loggerUnit, CONNECTION_TYPES, ERROR,\
     UNIT_TYPES, CONNECTED, DEV_TYPE, NO_TYPE, AFG, TSI
 import tkMessageBox
 import os
+import thread
+import Queue
+import time
+import pdb
 #############################################################################
 
 
@@ -102,18 +106,29 @@ def configure_system(**kwargs):
     return kwargs
 
 
+def measurement_thread(thread_id, device, queue):
+    result_dict = {}
+    result_dict[thread_id] = device.retrieve_measurement()
+    queue.put(result_dict)
+
+
 def take_reading(**kwargs):
+    kwargs['start'] = time.time()
     kwargs['results'] = []
+    kwargs['results_queue'] = Queue.Queue()
     i = 0
     try:
+        kwargs['workers'] = []
         for device in kwargs['devices']:
-            (result, display) = device.retrieve_measurement()
-            kwargs['results'].append(result)
-            kwargs['queue_data']['readings'][i] = display
+            worker = thread.Threading(target=measurement_thread,
+                                      args=[i, device,
+                                            kwargs['results_queue']])
+            worker.start()
+            kwargs['workers'].append(worker)
             i += 1
-        kwargs['queue'].put(kwargs['queue_data'])
         kwargs['exit_status'] = state._SUCCESS
         return kwargs
+
     #Handle any errors
     except:
         kwargs['queue_data']['status'][i] = CONNECTION_TYPES[ERROR]
@@ -128,6 +143,7 @@ def take_reading(**kwargs):
 
 def log_reading(**kwargs):
     data_to_write = []
+    for 
     for result in kwargs['results']:
         if result is not None:
             keys = result.keys()
@@ -145,6 +161,9 @@ def log_reading(**kwargs):
     #Write the data
     kwargs['results_log'].write_line(data_to_write,
                                      date_time_flag=True)
+    kwargs['finish'] = time.time()
+    print (kwargs['finish'] - kwargs['start'])
+    pdb.set_trace()
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
 

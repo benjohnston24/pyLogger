@@ -16,6 +16,7 @@ from stdtoolbox.logging import logger
 import sys
 #Used to test program with "Dev" unit type
 import random
+import time
 ##############################################################################
 
 ##@var UNIT_TYPES
@@ -217,6 +218,7 @@ class loggerUnit(object):
             self.info_logger.info('Measurement from %s: %0.2f' %
                                   (self.unit_type, return_result['random'])
                                   )
+            time.sleep(0.5)
             return (return_result, return_result['random'])
 
         elif self.unit_type == UNIT_TYPES[NO_TYPE]:
