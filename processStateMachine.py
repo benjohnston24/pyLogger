@@ -9,7 +9,8 @@ __license__ = "GPL"
 
 ##IMPORTS#####################################################################
 from stdtoolbox.stateMachine import StateMachine
-from processStates import system_setup_state, measure_state, process_state,\
+from processStates import system_setup_state, configure_state,\
+    measure_state, process_state,\
     complete_state, error_state
 ##############################################################################
 
@@ -75,7 +76,14 @@ class processStateMachine(StateMachine):
         ##@var system_setup_state
         #The state used to connect the test system hardware
         self.system_setup_state = system_setup_state
+        ##@var configure_state
+        #The system configuration state
+        self.configure_state = configure_state
+        ##@var measure_state
+        #The state which executes measurements
         self.measure_state = measure_state
+        ##@var process_state
+        #The state which processes measurements
         self.process_state = process_state
         ##@var complete_state
         #The final state for a correct execution of the state machine.
@@ -85,6 +93,10 @@ class processStateMachine(StateMachine):
         self.error_state = error_state
         #Configure the process path###################################
         self.system_setup_state.set_next_state([
+            self.configure_state,
+            self.error_state])
+
+        self.configure_state.set_next_state([
             self.measure_state,
             self.error_state,
             self.system_setup_state])
@@ -106,6 +118,7 @@ class processStateMachine(StateMachine):
         #Add the states to the stack###################################
         #The initial state
         self.add_state(self.system_setup_state)
+        self.add_state(self.configure_state)
         self.add_state(self.measure_state)
         self.add_state(self.process_state)
         self.add_state(self.complete_state)

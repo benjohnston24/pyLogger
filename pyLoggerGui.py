@@ -12,6 +12,7 @@ from stdtoolbox.stdGUI import stdGUI, StdLabelFrame, StdLabel
 from stdtoolbox.stdGUI import StdFrame, StdEntry
 from pyLoggerWidgets import pyLoggerButton
 from stdtoolbox import __revision__ as std_rev
+from stdtoolbox.logging import logger
 from loggerUnit import UNIT_TYPES, CONNECTION_TYPES
 from Tkinter import Menu, StringVar, OptionMenu, Toplevel, CENTER, LEFT
 import tkFont
@@ -53,6 +54,9 @@ class pyLoggerGui(stdGUI):
         @param debug_level Control debugging functionality of the class.  Is
         derived from toolbox.logger debug_level.
         """
+        ##TEMP###
+        self.debug_logger = logger('guilog.info',debug_level=2)
+
         ##@var root
         #The root window for the GUI
         self.root = root
@@ -136,7 +140,7 @@ class pyLoggerGui(stdGUI):
         """
         #Dictionary to encapsulate information
         data_dict = {}
-        data_dict['frame'] = StdLabelFrame(parent, text='Unit Frame %s' % id)
+        data_dict['frame'] = StdLabelFrame(parent, text='Device %s' % id)
         #Create dynamic components
         data_dict['unit'] = StringVar()
         data_dict['unit'].set(UNIT_TYPES[0])
@@ -257,8 +261,12 @@ class pyLoggerGui(stdGUI):
         @param self The pointer for the object
         """
         while self.queue.qsize():
+            pdb.set_trace()
+            self.debug_logger.info('Got data')
             try:
                 data = self.queue.get()
+                for dat in data:
+                    self.debug_logger.info(dat)
                 #Scroll through each of the unit windows
                 for i in range(len(data['status'])):
                     #Update the connection status variable
@@ -279,13 +287,16 @@ class pyLoggerGui(stdGUI):
                     #Update the reading variable
                     reading = data['readings'][i]
                     if reading is not None:
+                        print reading
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
+                    else:
+                        pdb.set_trace()
 
             except Queue.Empty:
                 pass
             except Exception, e:
-                pdb.set_trace()
+                self.debug_logger.info(e.__str__())
 
     def validate_inputs(self):
         """!

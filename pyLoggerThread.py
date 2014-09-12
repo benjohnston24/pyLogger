@@ -14,7 +14,15 @@ from stdtoolbox.logging import logger
 import tkMessageBox
 import Queue
 import threading
+import os
 ##############################################################################
+
+##@var LOG_FOLDER
+#The folder location for log files
+if os.name == 'posix':
+    LOG_FOLDER = os.getcwd() + '/dat/'
+elif os.name == 'nt':
+    LOG_FOLDER = os.getcwd() + '\\dat\\'
 
 
 class pyLoggerThread(processStateMachine):
@@ -50,21 +58,9 @@ class pyLoggerThread(processStateMachine):
         #Instantiate the parent class
         processStateMachine.__init__(self, debug_level)
 
-        ##@var queue
-        #Create the Queue object for sharing information between threads
-        self.queue = Queue.Queue()
-
         ##@var root
         #The root window for the GUI
         self.root = root
-
-        ##@var gui
-        #The pyLoggerGui object for the class
-        self.gui = pyLoggerGui(root,
-                               self.queue,
-                               start_command=self.start,
-                               reset_command=self.stop,
-                               stop_command=self.stop)
 
         ##@var run_status
         #Used to control the operation of the thread
@@ -72,16 +68,26 @@ class pyLoggerThread(processStateMachine):
 
         ##@var cargo
         #A dictionary object used to pass data through the state machine
-        self.cargo = {'gui_object': self.gui,
+        self.cargo = {'gui_object': None,
                       'logger': logger(debug_level=self.debug_level),
                       'error_logger': logger('error.log', debug_level=2),
+                      'log_folder': LOG_FOLDER,
                       'debug_level': self.debug_level,
-                      'queue': self.queue,
+                      'queue': Queue.Queue(),
                       'queue_data': {'status': [None, None],
                                      'readings': [None, None]
                                      },
                       }
 
+        ##@var gui
+        #The pyLoggerGui object for the class
+        self.gui = pyLoggerGui(root,
+                               self.cargo['queue'],
+                               start_command=self.start,
+                               reset_command=self.stop,
+                               stop_command=self.stop)
+
+        self.cargo['gui_object'] = self.gui
         #Monitor process queue
         self.monitor()
 
@@ -116,6 +122,9 @@ class pyLoggerThread(processStateMachine):
             if self.current_state != self._COMPLETE_STATE:
                 self.current_state = self.stack[self.current_state].\
                     next_state[self.cargo['exit_status']]
+            else:
+                #If the current state is state complete stop the machine
+                self.run_status = self.STOP
 
         self.current_state = self.initial_state
         self.cargo['current_state'] = ''
@@ -144,5 +153,6 @@ class pyLoggerThread(processStateMachine):
     def monitor(self):
         """!
         """
+        self.cargo['logger'].info('Call Monitor')
         self.gui.process_incoming()
-        self.gui.root.after(100, self.monitor)
+        self.root.after(100, self.monitor)
