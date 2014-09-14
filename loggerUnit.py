@@ -91,7 +91,8 @@ class loggerUnit(object):
     def __init__(self,
                  serial_port=None,
                  unit_type=UNIT_TYPES[NO_TYPE],
-                 debug_level=0):
+                 debug_level=0,
+                 ):
         """!
         The constructor for the class
         @param self The pointer for the object
@@ -108,6 +109,7 @@ class loggerUnit(object):
         self.serial_port = serial_port
         #Check the unit type is valid
         if unit_type in UNIT_TYPES:
+            self.sleep = 0
             ##@var unit_type
             #Store the unit type for the object
             self.unit_type = unit_type
@@ -218,7 +220,7 @@ class loggerUnit(object):
             self.info_logger.info('Measurement from %s: %0.2f' %
                                   (self.unit_type, return_result['random'])
                                   )
-            time.sleep(0.5)
+            time.sleep(self.sleep)
             return (return_result, return_result['random'])
 
         elif self.unit_type == UNIT_TYPES[NO_TYPE]:

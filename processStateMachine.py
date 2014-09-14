@@ -10,7 +10,7 @@ __license__ = "GPL"
 ##IMPORTS#####################################################################
 from stdtoolbox.stateMachine import StateMachine
 from processStates import system_setup_state, configure_state,\
-    measure_state, process_state,\
+    measure_state, process_state, log_state,\
     complete_state, error_state
 ##############################################################################
 
@@ -85,6 +85,9 @@ class processStateMachine(StateMachine):
         ##@var process_state
         #The state which processes measurements
         self.process_state = process_state
+        ##@var log_state
+        #The data logging state
+        self.log_state = log_state
         ##@var complete_state
         #The final state for a correct execution of the state machine.
         self.complete_state = complete_state
@@ -106,6 +109,10 @@ class processStateMachine(StateMachine):
             self.error_state])
 
         self.process_state.set_next_state([
+            self.log_state,
+            self.error_state])
+
+        self.log_state.set_next_state([
             self.measure_state,
             self.error_state])
 
@@ -121,6 +128,7 @@ class processStateMachine(StateMachine):
         self.add_state(self.configure_state)
         self.add_state(self.measure_state)
         self.add_state(self.process_state)
+        self.add_state(self.log_state)
         self.add_state(self.complete_state)
         self.add_state(self.error_state)
 

@@ -9,7 +9,7 @@ __license__ = "GPL"
 
 ##IMPORT#####################################################################
 from stdtoolbox.stateMachine import state, StateMachine
-from stdtoolbox.logging import csvLogger
+from stdtoolbox.logging import csvLogger, logger
 from loggerUnit import loggerUnit, CONNECTION_TYPES, ERROR,\
     UNIT_TYPES, CONNECTED, DEV_TYPE, NO_TYPE, AFG, TSI
 import tkMessageBox
@@ -72,6 +72,11 @@ def system_setup(**kwargs):
 def configure_system(**kwargs):
     """!
     """
+    ###TEMP#################
+    kwargs['counter'] = 0
+    kwargs['start'] = time.time()
+    kwargs['debug_log'] = csvLogger('debug.log', debug_level=2)
+    ###########################################################
     #Check if any of the devices are not connected
     i = 0
     for device in kwargs['devices']:
@@ -117,15 +122,17 @@ def measurement_thread(thread_id, device, queue):
 
 
 def take_reading(**kwargs):
-    kwargs['start'] = time.time()
     kwargs['results_queue'] = Queue.Queue()
     i = 0
     try:
         #Create an array of worker threads to execute the measurements
         kwargs['workers'] = []
+        sleep = [0.5, 1]
         for device in kwargs['devices']:
+            tmp = device
+            #tmp.sleep = sleep[i]
             worker = threading.Thread(target=measurement_thread,
-                                      args=[i, device,
+                                      args=[i, tmp,
                                             kwargs['results_queue']])
             worker.start()
             kwargs['workers'].append(worker)
@@ -158,17 +165,22 @@ def process_results(**kwargs):
     while kwargs['results_queue'].qsize():
         try:
             data = kwargs['results_queue'].get()
-            pdb.set_trace()
+            key = data.keys()[0]
+            #Get the data dictionary
+            kwargs['results'][key] = data[key][0]
+            #Update the display
+            kwargs['queue_data']['readings'][key] = \
+                data[key][1]
         except Queue.Empty:
             pass
+
+    kwargs['queue'].put(kwargs['queue_data'])
     kwargs['exit_status'] = state._SUCCESS
-    return
+    return kwargs
 
 
 def log_reading(**kwargs):
     data_to_write = []
-    kwargs['finish'] = time.time()
-    print (kwargs['finish'] - kwargs['start'])
     for result in kwargs['results']:
         if result is not None:
             keys = result.keys()
@@ -186,9 +198,13 @@ def log_reading(**kwargs):
     #Write the data
     kwargs['results_log'].write_line(data_to_write,
                                      date_time_flag=True)
-    kwargs['finish2'] = time.time()
-    print (kwargs['finish2'] - kwargs['finish'])
-    pdb.set_trace()
+    if kwargs['counter'] > 100:
+        kwargs['finish'] = time.time()
+        kwargs['debug_log'].write_line([(kwargs['finish'] - kwargs['start'])])
+        kwargs['counter'] = 0
+        kwargs['start'] = time.time()
+    else:
+        kwargs['counter'] += 1
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
 
