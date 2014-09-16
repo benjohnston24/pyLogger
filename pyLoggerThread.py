@@ -90,7 +90,8 @@ class pyLoggerThread(processStateMachine):
                       'debug_level': self.debug_level,
                       'queue': self.queue,
                       'queue_data': {'status': [None, None],
-                                     'readings': [None, None]
+                                     'readings': [None, None],
+                                     'file_name': None,
                                      },
                       }
 

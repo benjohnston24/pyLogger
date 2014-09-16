@@ -11,7 +11,13 @@ __license__ = "GPL"
 import argparse
 from pyLoggerThread import pyLoggerThread
 from Tkinter import Tk
+from stdtoolbox.logging import crashLogger
+import sys
 ##############################################################################
+#Define the crash logger
+crashlog = crashLogger()
+#Re-route the exception handler to log uncaught exceptions
+sys.excepthook = crashlog.log_crash
 
 #Process command line arguments
 parser = argparse.ArgumentParser()

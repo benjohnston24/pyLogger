@@ -239,7 +239,7 @@ class loggerUnit(object):
                     #Use the flow meter
                     #Take a single reading
                     return_result = {}
-                    result = self.device.measure_FTP()
+                    result = self.device.measure_FTP().next()
                     for key in result.keys():
                         return_result[key] = result[key][0]
                     display_result = return_result['flow']
@@ -262,4 +262,5 @@ class loggerUnit(object):
         """
         if (self.unit_type != UNIT_TYPES[NO_TYPE] and
                 self.unit_type != UNIT_TYPES[DEV_TYPE]):
-            self.device.device.close()
+            if hasattr(self, 'device'):
+                self.device.device.close()

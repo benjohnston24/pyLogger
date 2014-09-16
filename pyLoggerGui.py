@@ -3,7 +3,7 @@
 
 """
 __author__ = "Ben Johnston"
-__revision__ = "0.1"
+__revision__ = "0.2"
 __date__ = "Fri Sep  5 17:52:56 EST 2014"
 __license__ = "GPL"
 
@@ -57,7 +57,7 @@ class pyLoggerGui(stdGUI):
         derived from toolbox.logger debug_level.
         """
         #Log for debugging
-        self.debug_logger = logger('guilog.info', debug_level=debug_level)
+        self.debug_logger = logger('guilog.log', debug_level=debug_level)
 
         ##@var root
         #The root window for the GUI
@@ -87,7 +87,7 @@ class pyLoggerGui(stdGUI):
         #The folder where results are stored
         self.log_folder = log_folder
         StdLabel(self.file_frame,
-                 text='File Name:', justify='left').\
+                 text='Test Id:', justify='left').\
             grid(row=0, column=0, sticky='W')
 
         #Add the text entry field
@@ -97,6 +97,13 @@ class pyLoggerGui(stdGUI):
         self.file_entry.grid(row=0, column=1, sticky='W',
                              padx=10)
 
+        self.log_name = StringVar()
+        StdLabel(self.file_frame,
+                 text='Log File Name: ', justify='left').\
+            grid(row=1, column=0, sticky='W')
+        StdLabel(self.file_frame,
+                 textvariable=self.log_name, justify='left').\
+            grid(row=1, column=1, sticky='W', padx=10)
         #Display the file name grid
         self.file_frame.grid(row=0, columnspan=2,
                              sticky='W', pady=5)
@@ -343,6 +350,9 @@ class pyLoggerGui(stdGUI):
             self.debug_logger.info('Got data')
             try:
                 data = self.queue.get()
+                #Update the file name
+                if data['file_name'] is not None:
+                    self.log_name.set(data['file_name'])
                 #Scroll through each of the unit windows
                 for i in range(len(data['status'])):
                     #Update the connection status variable

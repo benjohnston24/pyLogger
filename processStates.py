@@ -31,10 +31,9 @@ def system_setup(**kwargs):
     updated data.
     """
     #Collect the user input
-    kwargs['file_name'] = kwargs['log_folder'] + \
-                          kwargs['gui_object'].file_name.get() + \
-                          '.csv'
-
+    kwargs['file_name'] = os.path.join(kwargs['log_folder'],
+                                       kwargs['gui_object'].file_name.get()
+                                       + '.csv')
     #Construct the device objects
     kwargs['devices'] = [None, None]
     i = 0
@@ -71,6 +70,9 @@ def system_setup(**kwargs):
 
 def configure_system(**kwargs):
     """!
+    This method configures the system for use
+    @param kwargs A pointer to the data structure for the state machine
+    @return kwargs The modified data structure for the state machine
     """
     ###TEMP#################
     kwargs['counter'] = 0
@@ -95,28 +97,34 @@ def configure_system(**kwargs):
         if device.unit_type != UNIT_TYPES[NO_TYPE]:
             for dat_type in device.results_types:
                 kwargs['header'].append(dat_type)
-    #Setup the data logging object
-    if os.path.isfile(kwargs['file_name']):
-        #Set the write header flag
-        write_header = True
-    else:
-        write_header = False
     kwargs['results_log'] = csvLogger(kwargs['file_name'],
                                       debug_level=kwargs['debug_level'],
+                                      append_file=False,
                                       header=kwargs['header'])
-    if write_header:
-        kwargs['results_log'].write_line(kwargs['header'],
-                                         date_time_flag=False)
+    #Put the file name on the queue to update the GUI
+    kwargs['queue_data']['file_name'] = \
+        os.path.split(kwargs['results_log'].file_name)[1]
+    #Update the display
+    kwargs['queue'].put(kwargs['queue_data'])
+    #Prevent further file name updates
+    #kwargs['queue_data']['file_name'] = None
+    #if write_header:
+    #    kwargs['results_log'].write_line(kwargs['header'],
+    #                                     date_time_flag=False)
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
 
 
 def measurement_thread(thread_id, device, queue):
     result_dict = {}
+    measure_log = csvLogger('measure_log.csv')
+    start = time.time()
     result_dict[thread_id] = []
     try:
         result_dict[thread_id] = device.retrieve_measurement()
         queue.put(result_dict)
+        finish = time.time()
+        measure_log.write_line('%s,%0.2f' % (device.unit_type, finish - start))
     except:
         result_dict[thread_id]['error'] = 1
 
@@ -127,10 +135,8 @@ def take_reading(**kwargs):
     try:
         #Create an array of worker threads to execute the measurements
         kwargs['workers'] = []
-        sleep = [0.5, 1]
         for device in kwargs['devices']:
             tmp = device
-            #tmp.sleep = sleep[i]
             worker = threading.Thread(target=measurement_thread,
                                       args=[i, tmp,
                                             kwargs['results_queue']])
@@ -198,7 +204,7 @@ def log_reading(**kwargs):
     #Write the data
     kwargs['results_log'].write_line(data_to_write,
                                      date_time_flag=True)
-    if kwargs['counter'] > 100:
+    if kwargs['counter'] > 10:
         kwargs['finish'] = time.time()
         kwargs['debug_log'].write_line([(kwargs['finish'] - kwargs['start'])])
         kwargs['counter'] = 0
