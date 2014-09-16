@@ -19,10 +19,7 @@ import os
 
 ##@var LOG_FOLDER
 #The folder location for log files
-if os.name == 'posix':
-    LOG_FOLDER = os.getcwd() + '/dat/'
-elif os.name == 'nt':
-    LOG_FOLDER = os.getcwd() + '\\dat\\'
+LOG_FOLDER = os.path.join(os.getcwd(), 'dat')
 
 
 class pyLoggerThread(processStateMachine):
@@ -129,6 +126,8 @@ class pyLoggerThread(processStateMachine):
             if self.current_state != self._COMPLETE_STATE:
                 self.current_state = self.stack[self.current_state].\
                     next_state[self.cargo['exit_status']]
+            else:
+                self.run_status = self.STOP
 
         #Close all ports
         for log_device in self.cargo['devices']:

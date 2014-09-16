@@ -12,7 +12,6 @@ from stdtoolbox.stateMachine import state, StateMachine
 from stdtoolbox.logging import csvLogger, logger
 from loggerUnit import loggerUnit, CONNECTION_TYPES, ERROR,\
     UNIT_TYPES, CONNECTED, DEV_TYPE, NO_TYPE, AFG, TSI
-import tkMessageBox
 import os
 import threading
 import Queue
@@ -30,6 +29,10 @@ def system_setup(**kwargs):
     @return A pointer to the structure passed to the function, containing
     updated data.
     """
+    #Reset error flags
+    kwargs['queue_data']['error_type'] = None
+    kwargs['queue_data']['error_info'] = None
+    kwargs['queue'].put(kwargs['queue_data'])
     #Collect the user input
     kwargs['file_name'] = os.path.join(kwargs['log_folder'],
                                        kwargs['gui_object'].file_name.get()
@@ -37,14 +40,14 @@ def system_setup(**kwargs):
     #Construct the device objects
     kwargs['devices'] = [None, None]
     i = 0
-    for device in (kwargs['gui_object'].unit_frame_dict):
-        unit = loggerUnit(unit_type=device['unit'].get(),
-                          debug_level=kwargs['debug_level'])
-        kwargs['devices'][i] = unit
-        i += 1
-
-    #Connect the devices
     try:
+        for device in (kwargs['gui_object'].unit_frame_dict):
+            unit = loggerUnit(unit_type=device['unit'].get(),
+                              debug_level=kwargs['debug_level'])
+            kwargs['devices'][i] = unit
+            i += 1
+
+        #Connect the devices
         i = 0
         kwargs['queue_data']['status'] = [None, None]
         for device in kwargs['devices']:
@@ -61,9 +64,9 @@ def system_setup(**kwargs):
     except:
         kwargs['queue_data']['status'][i] = CONNECTION_TYPES[ERROR]
         kwargs['queue'].put(kwargs['queue_data'])
-        tkMessageBox.showerror('Connection Error:',
-                               'Unable to connect to device',
-                               parent=kwargs['gui_object'].root)
+        kwargs['queue_data']['error_type'] = 'Connection Error'
+        kwargs['queue_data']['error_info'] = 'Unable to connect to device'
+        kwargs['queue'].put(kwargs['queue_data'])
         kwargs['exit_status'] = state._ERROR
         return kwargs
 
@@ -84,10 +87,11 @@ def configure_system(**kwargs):
     for device in kwargs['devices']:
         if (device.connected != CONNECTION_TYPES[CONNECTED]) and\
                 (device.unit_type != UNIT_TYPES[NO_TYPE]):
-            tkMessageBox.showerror("Connection Error",
-                                   "Device %d not connected" % (i + 1),
-                                   parent=kwargs['gui_object'].root)
-            kwargs['exit_status'] = state._FIRST_BRANCH
+            kwargs['queue_data']['error_type'] = 'Connection Error'
+            kwargs['queue_data']['error_info'] = 'Device %d not connected'\
+                                                 % (i + 1)
+            kwargs['queue'].put(kwargs['queue_data'])
+            kwargs['exit_status'] = state._ERROR
             return kwargs
         else:
             i += 1
@@ -153,11 +157,11 @@ def take_reading(**kwargs):
     #Handle any errors
     except:
         kwargs['queue_data']['status'][i] = CONNECTION_TYPES[ERROR]
+        kwargs['queue_data']['error_type'] = 'Measurement Error'
+        kwargs['queue_data']['error_info'] = 'Device %d Unable to take'\
+                                             ' measurement'\
+                                             % (i + 1)
         kwargs['queue'].put(kwargs['queue_data'])
-        tkMessageBox.showerror('Measurement Error',
-                               'Device %d: Unable to take'
-                               ' measurement' % i + 1,
-                               parent=kwargs['gui_object'].root)
         kwargs['exit_status'] = state._ERROR
         return kwargs
 
@@ -220,6 +224,12 @@ def finalise_test(**kwargs):
 
 
 def handle_error(**kwargs):
+    #Add delay to allow for errors to be reported
+    #time.sleep(0.2)
+    #Reset error flags
+    #kwargs['queue_data']['error_type'] = None
+    #kwargs['queue_data']['error_info'] = None
+    #kwargs['queue'].put(kwargs['queue_data'])
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
 ##Construct the states#####################################################

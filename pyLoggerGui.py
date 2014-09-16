@@ -16,10 +16,12 @@ from stdtoolbox.logging import logger
 from loggerUnit import UNIT_TYPES, CONNECTION_TYPES
 from Tkinter import Menu, StringVar, OptionMenu, Toplevel, CENTER, LEFT
 from Tkinter import Image as tkImage
+import tkMessageBox
 import tkFont
 import Queue
 import os
 import sys
+import time
 #Hardware imports
 from TSI import __revision__ as TSI_rev
 from AFG import __revision__ as AFG_rev
@@ -31,6 +33,11 @@ if os.name == 'nt':
 ##@var MAX_WIDGET_WIDTH
 #Define the maximum width of a widget
 MAX_WIDGET_WIDTH = 30
+
+##@var ERROR_TIME
+#The time limit used to prevent multiple errors occurring within quick
+#succession (in seconds)
+ERROR_TIME = 1
 
 
 class pyLoggerGui(stdGUI):
@@ -74,6 +81,10 @@ class pyLoggerGui(stdGUI):
         ##@var queue
         #The queue object to pass information between threads
         self.queue = queue
+        ##@var error_timer
+        #A timer that is used to prevent multiple errors from being displayed
+        #in quick succession
+        self.error_timer = time.time()
         ##@var quit_command
         #The command to stop threads
         self.quit_command = stop_command
@@ -350,6 +361,15 @@ class pyLoggerGui(stdGUI):
             self.debug_logger.info('Got data')
             try:
                 data = self.queue.get()
+                #Check for errors
+                if (data['error_type'] is not None) and\
+                   (data['error_info'] is not None):
+                    if (time.time() - self.error_timer) > ERROR_TIME:
+                        tkMessageBox.showerror(
+                            data['error_type'],
+                            data['error_info'],
+                            parent=self.root)
+                        self.error_timer = time.time()
                 #Update the file name
                 if data['file_name'] is not None:
                     self.log_name.set(data['file_name'])

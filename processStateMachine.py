@@ -175,6 +175,8 @@ class processStateMachine(StateMachine):
             if self.current_state != self._COMPLETE_STATE:
                 self.current_state = self.stack[self.current_state].\
                     next_state[self.cargo['exit_status']]
+            else:
+                break
 
         self.cargo['logger'].info('Stopping State Machine')
 
@@ -193,5 +195,4 @@ class processStateMachine(StateMachine):
         Stop the state machine
         @param self The pointer for the object
         """
-        print 'stop'
         self.current_state = self._COMPLETE_STATE
