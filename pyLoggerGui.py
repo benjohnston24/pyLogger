@@ -3,7 +3,7 @@
 
 """
 __author__ = "Ben Johnston"
-__revision__ = "0.2"
+__revision__ = "0.3"
 __date__ = "Fri Sep  5 17:52:56 EST 2014"
 __license__ = "GPL"
 
@@ -64,7 +64,7 @@ class pyLoggerGui(stdGUI):
         derived from toolbox.logger debug_level.
         """
         #Log for debugging
-        self.debug_logger = logger('guilog.log', debug_level=debug_level)
+        self.debug_logger = logger('guiQueueData.log', debug_level=debug_level)
 
         ##@var root
         #The root window for the GUI
@@ -341,7 +341,7 @@ class pyLoggerGui(stdGUI):
         @param self The pointer for the object
         """
         if os.name == 'nt':
-            self.debug_logger.info(self.log_folder)
+            self.debug_logger.info('Open Results Folder: ' + self.log_folder)
             subprocess.Popen('explorer "{0}"'.format(self.log_folder))
 
     def _quit(self):
@@ -358,13 +358,19 @@ class pyLoggerGui(stdGUI):
         @param self The pointer for the object
         """
         while self.queue.qsize():
-            self.debug_logger.info('Got data')
+            self.debug_logger.info('Gui: Received data from threads')
             try:
                 data = self.queue.get()
                 #Check for errors
                 if (data['error_type'] is not None) and\
                    (data['error_info'] is not None):
                     if (time.time() - self.error_timer) > ERROR_TIME:
+                        #Log the error
+                        self.debug_logger.info('Received error type'
+                                               ' %s' % data['error_type'])
+                        self.debug_logger.info('Received error info'
+                                               ' %s' % data['error_info'])
+                        #Display error to user
                         tkMessageBox.showerror(
                             data['error_type'],
                             data['error_info'],
@@ -372,28 +378,36 @@ class pyLoggerGui(stdGUI):
                         self.error_timer = time.time()
                 #Update the file name
                 if data['file_name'] is not None:
+                    #Log the receipt of file_name
+                    self.debug_logger.info(
+                        'Received file name: %s' % data['file_name'])
                     self.log_name.set(data['file_name'])
                 #Scroll through each of the unit windows
                 for i in range(len(data['status'])):
-                    #Update the connection status variable
                     status = data['status'][i]
                     if status is not None:
+                        #Update the connection status variable
+                        self.debug_logger.info(
+                            'Received connection status for device'
+                            ' %d: %s' % ((i + 1), status))
                         self.unit_frame_dict[i]['status'].set(
                             status)
-                    #Update the colour fo the status message
-                    if status == CONNECTION_TYPES[1]:
-                        status_colour = 'green'
-                    else:
-                        status_colour = 'red'
-                    #Commit the update
-                    self.unit_frame_dict[i]['status_widget'].\
-                        configure(fg=status_colour)
+                        #Update the colour fo the status message
+                        if status == CONNECTION_TYPES[1]:
+                            status_colour = 'green'
+                        else:
+                            status_colour = 'red'
+                        #Commit the update
+                        self.unit_frame_dict[i]['status_widget'].\
+                            configure(fg=status_colour)
 
                 for i in range(len(data['readings'])):
                     #Update the reading variable
                     reading = data['readings'][i]
-                    self.debug_logger.info(str(reading))
                     if reading is not None:
+                        self.debug_logger.info('Received reading '
+                                               'for device %d: %s' % ((i + 1),
+                                                                      reading))
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
 

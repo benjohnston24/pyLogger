@@ -90,6 +90,7 @@ def configure_system(**kwargs):
             kwargs['queue_data']['error_type'] = 'Connection Error'
             kwargs['queue_data']['error_info'] = 'Device %d not connected'\
                                                  % (i + 1)
+
             kwargs['queue'].put(kwargs['queue_data'])
             kwargs['exit_status'] = state._ERROR
             return kwargs
@@ -108,6 +109,9 @@ def configure_system(**kwargs):
     #Put the file name on the queue to update the GUI
     kwargs['queue_data']['file_name'] = \
         os.path.split(kwargs['results_log'].file_name)[1]
+    #Stop updating the file name & status
+    #kwargs['queue_data']['file_name'] = None
+    #kwargs['queue_data']['status'] = [None, None]
     #Update the display
     kwargs['queue'].put(kwargs['queue_data'])
     #Prevent further file name updates
