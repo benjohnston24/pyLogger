@@ -228,45 +228,37 @@ class pyLoggerGui(stdGUI):
                  justify=LEFT,
                  ).grid(row=1, sticky='W')
         StdLabel(help_frame,
-                 text='2. If using Mecmesin Force Gauge.  Press and\n'
-                      'hold TXD until Tx is displayed on the LCD Screen.\n'
-                      'If Tx is already displayed continue.',
+                 text='2. Select the device type(s) in the drop down menus\n'
+                      'that are to be used during logging.',
                  font=tkFont.Font(family='Arial',
                                   size=normal_size),
                  justify=LEFT
                  ).grid(row=2, sticky='W')
         StdLabel(help_frame,
-                 text='3. Select the device type(s) in the drop down menus\n'
-                      'that are to be used during logging.',
+                 text='3. Enter a file name for the log file.',
                  font=tkFont.Font(family='Arial',
                                   size=normal_size),
                  justify=LEFT
                  ).grid(row=3, sticky='W')
         StdLabel(help_frame,
-                 text='4. Enter a file name for the log file.',
+                 text='4. Click Start to begin logging',
                  font=tkFont.Font(family='Arial',
                                   size=normal_size),
                  justify=LEFT
                  ).grid(row=4, sticky='W')
         StdLabel(help_frame,
-                 text='5. Click Start to begin logging',
+                 text='5. Click Stop when done',
                  font=tkFont.Font(family='Arial',
                                   size=normal_size),
                  justify=LEFT
                  ).grid(row=5, sticky='W')
         StdLabel(help_frame,
-                 text='6. Click Stop when done',
-                 font=tkFont.Font(family='Arial',
-                                  size=normal_size),
-                 justify=LEFT
-                 ).grid(row=6, sticky='W')
-        StdLabel(help_frame,
-                 text='7. Use the Results Folder tool bar option\n'
+                 text='6. Use the Results Folder tool bar option\n'
                       ' to access the log file',
                  font=tkFont.Font(family='Arial',
                                   size=normal_size),
                  justify=LEFT
-                 ).grid(row=7, sticky='W')
+                 ).grid(row=6, sticky='W')
 
         return help_frame
 

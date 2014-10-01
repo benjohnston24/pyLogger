@@ -3,8 +3,8 @@
 Mecmesin load cell data logger
 """
 __author__ = "Ben Johnston"
-__revision__ = "0.2"
-__date__ = ""
+__revision__ = "0.3"
+__date__ = "Wed Oct  1 16:30:32 EST 2014"
 __license__ = "GPL"
 
 ##IMPORTS#####################################################################

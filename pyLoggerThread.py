@@ -15,11 +15,46 @@ import tkMessageBox
 import Queue
 import threading
 import os
+import pdb
 ##############################################################################
 
 ##@var LOG_FOLDER
 #The folder location for log files
 LOG_FOLDER = os.path.join(os.getcwd(), 'dat')
+
+
+#A function that provides a reduced data file
+def sample_data_file(file_name=None, rate=None):
+    """!
+    Take a sample of data from file_name.
+    @param file_name The file name of the data to sample
+    @param rate The rate at which data is to be sampled.  If rate = x then
+    every xth line is extraced from the file (exlcuding the header row
+    @return The file name of the file containing the sampled data set.  The
+    returned file will contain file_name with '_sampled' appended and inserted
+    before the file extension e.g. test.csv becomes test_sampled.csv. If an
+    error occurred None will be returned.
+    """
+    if os.path.isfile(file_name):
+        if rate is None:
+            return None
+        else:
+            #Extract file name
+            (log_file_name, ext) = os.path.splitext(file_name)
+            sample_name = log_file_name + '_sampled' + ext
+            counter = rate + 1
+            with open(file_name, 'r') as f_in:
+                with open(sample_name, 'a') as f_out:
+                    while True:
+                        line = f_in.readline()
+                        if line == '':
+                            break
+                        if counter > rate:
+                            f_out.write(line)
+                            counter = 1
+                        else:
+                            counter += 1
+            return sample_name
 
 
 class pyLoggerThread(processStateMachine):
@@ -120,9 +155,6 @@ class pyLoggerThread(processStateMachine):
             self.cargo = self.stack[self.current_state].\
                 executeState(self.cargo)
 
-            #Update the queue
-            #self.queue.put(self.cargo['queue_data'])
-
             if self.current_state != self._COMPLETE_STATE:
                 self.current_state = self.stack[self.current_state].\
                     next_state[self.cargo['exit_status']]
@@ -132,6 +164,11 @@ class pyLoggerThread(processStateMachine):
         #Close all ports
         for log_device in self.cargo['devices']:
             log_device.close_port()
+
+        #Provide a reduced data set log
+        sample_data_file(file_name=os.path.join(LOG_FOLDER,
+                                                self.cargo['log_file_name']),
+                         rate=5)
         self.current_state = self.initial_state
         self.cargo['current_state'] = ''
         self.cargo['logger'].info('Stopping State Machine')

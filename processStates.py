@@ -107,8 +107,9 @@ def configure_system(**kwargs):
                                       append_file=False,
                                       header=kwargs['header'])
     #Put the file name on the queue to update the GUI
+    kwargs['log_file_name'] = kwargs['results_log'].file_name
     kwargs['queue_data']['file_name'] = \
-        os.path.split(kwargs['results_log'].file_name)[1]
+        os.path.split(kwargs['log_file_name'])[1]
     #Stop updating the file name & status
     #kwargs['queue_data']['file_name'] = None
     #kwargs['queue_data']['status'] = [None, None]
