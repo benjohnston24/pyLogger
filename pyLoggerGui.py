@@ -51,6 +51,7 @@ class pyLoggerGui(stdGUI):
                  root=None,
                  queue=None,
                  version=None,
+                 number_of_units=2,
                  log_folder=None,
                  start_command=None,
                  reset_command=None,
@@ -59,7 +60,18 @@ class pyLoggerGui(stdGUI):
         """
         The constructor for the class
         @param self The pointer for the object
+        @param root The Tkinter Tk object for the class
+        @param queue The Queue object to be used by the class for dynamically
+        updating widgets from a thread
         @param version A string containing the version number of software
+        @param number_of_units The number of loggerUnit objects  to be used by
+        the class
+        @param start_command The handle for the function to be used to start
+        the logging process
+        @param reset_command The handle for the function to be used to restart
+        the logging process
+        @param stop_command The handle for the function to be used to stop the
+        logging process
         @param debug_level Control debugging functionality of the class.  Is
         derived from toolbox.logger debug_level.
         """
@@ -94,6 +106,11 @@ class pyLoggerGui(stdGUI):
         #Create a text entry field to store the current filename for data
         self.file_name = StringVar()
         self.file_frame = StdFrame(self.root)
+        ##@var number_of_units
+        #The number of logging units to be used byt the class.  This variable
+        #controls the number of log unit frames that are generated and
+        #displayed
+        self.number_of_units = number_of_units
         ##@var log_folder
         #The folder where results are stored
         self.log_folder = log_folder
@@ -118,8 +135,6 @@ class pyLoggerGui(stdGUI):
         #Display the file name grid
         self.file_frame.grid(row=0, columnspan=2,
                              sticky='W', pady=5)
-        #Generate frames
-        self.number_of_units = 2
         #Create arrays to store dynamic interface components for each logger
         #unit
         self.unit_frame_dict = []
