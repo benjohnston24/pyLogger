@@ -3,8 +3,8 @@
 
 """
 __author__ = "Ben Johnston"
-__revision__ = "0.3"
-__date__ = "Fri Sep  5 17:52:56 EST 2014"
+__revision__ = "0.4"
+__date__ = "Thu Oct  9 08:32:48 EST 2014"
 __license__ = "GPL"
 
 ##IMPORTS#####################################################################

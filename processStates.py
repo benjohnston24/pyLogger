@@ -80,7 +80,9 @@ def configure_system(**kwargs):
     ###TEMP#################
     kwargs['counter'] = 0
     kwargs['start'] = time.time()
-    kwargs['debug_log'] = csvLogger('debug.log', debug_level=2)
+    #logging object used for debugging purposes only
+    #kwargs['debug_log'] = csvLogger('debug.log',
+    #                                debug_level=kwargs['debug_level'])
     ###########################################################
     #Check if any of the devices are not connected
     i = 0
@@ -215,7 +217,7 @@ def log_reading(**kwargs):
                                      date_time_flag=True)
     if kwargs['counter'] > 10:
         kwargs['finish'] = time.time()
-        kwargs['debug_log'].write_line([(kwargs['finish'] - kwargs['start'])])
+        #kwargs['debug_log'].write_line([(kwargs['finish'] - kwargs['start'])])
         kwargs['counter'] = 0
         kwargs['start'] = time.time()
     else:

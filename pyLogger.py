@@ -5,7 +5,7 @@ received via a serial bus as well as other means.
 """
 __author__ = "Ben Johnston"
 __revision__ = "0.4"
-__date__ = "Wed Oct  1 16:30:32 EST 2014"
+__date__ = "Thu Oct  9 08:33:03 EST 2014"
 __license__ = "GPL"
 
 ##IMPORTS#####################################################################
