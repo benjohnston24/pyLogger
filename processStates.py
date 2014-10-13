@@ -9,13 +9,14 @@ __license__ = "GPL"
 
 ##IMPORT#####################################################################
 from stdtoolbox.stateMachine import state, StateMachine
-from stdtoolbox.logging import csvLogger
+from stdtoolbox.logging import csvLogger, logger
 from loggerUnit import loggerUnit, CONNECTION_TYPES, ERROR,\
-    UNIT_TYPES, CONNECTED, NO_TYPE
+    UNIT_TYPES, CONNECTED, DEV_TYPE, NO_TYPE, AFG, TSI
 import os
 import threading
 import Queue
 import time
+import pdb
 #############################################################################
 
 
@@ -37,8 +38,7 @@ def system_setup(**kwargs):
                                        kwargs['gui_object'].file_name.get()
                                        + '.csv')
     #Construct the device objects
-    frames = range(len(kwargs['gui_object'].unit_frame_dict))
-    kwargs['devices'] = [None for i in frames]
+    kwargs['devices'] = [None, None]
     i = 0
     try:
         for device in (kwargs['gui_object'].unit_frame_dict):
@@ -48,8 +48,8 @@ def system_setup(**kwargs):
             i += 1
 
         #Connect the devices
-        kwargs['queue_data']['status'] = [None for frame in frames]
         i = 0
+        kwargs['queue_data']['status'] = [None, None]
         for device in kwargs['devices']:
             device.connect()
             kwargs['queue_data']['status'][i] = device.connected
@@ -80,9 +80,7 @@ def configure_system(**kwargs):
     ###TEMP#################
     kwargs['counter'] = 0
     kwargs['start'] = time.time()
-    #logging object used for debugging purposes only
-    #kwargs['debug_log'] = csvLogger('debug.log',
-    #                                debug_level=kwargs['debug_level'])
+    kwargs['debug_log'] = csvLogger('debug.log', debug_level=2)
     ###########################################################
     #Check if any of the devices are not connected
     i = 0
@@ -142,10 +140,10 @@ def measurement_thread(thread_id, device, queue):
 
 def take_reading(**kwargs):
     kwargs['results_queue'] = Queue.Queue()
+    i = 0
     try:
         #Create an array of worker threads to execute the measurements
         kwargs['workers'] = []
-        i = 0
         for device in kwargs['devices']:
             tmp = device
             worker = threading.Thread(target=measurement_thread,
@@ -217,7 +215,7 @@ def log_reading(**kwargs):
                                      date_time_flag=True)
     if kwargs['counter'] > 10:
         kwargs['finish'] = time.time()
-        #kwargs['debug_log'].write_line([(kwargs['finish'] - kwargs['start'])])
+        kwargs['debug_log'].write_line([(kwargs['finish'] - kwargs['start'])])
         kwargs['counter'] = 0
         kwargs['start'] = time.time()
     else:

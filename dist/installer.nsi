@@ -108,16 +108,16 @@ Section "pyLogger" SecFiles
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${COMPANYNAME} ${APPNAME}" "EstimatedSize" ${INSTALLSIZE}
 
     #Set the required UAC level in the shortcut
-    #ShellLink::SetRunAsAdministrator "$SMPROGRAMS\${START_FOLDER}\${APPNAME}.lnk"
-    #Pop $0
-    #DetailPrint "SetRunAsAdministrator: $0"
-    #DetailPrint ""
+    ShellLink::SetRunAsAdministrator "$SMPROGRAMS\${START_FOLDER}\${APPNAME}.lnk"
+    Pop $0
+    DetailPrint "SetRunAsAdministrator: $0"
+    DetailPrint ""
 
     #Set the required UAC level in the shortcut
-    #ShellLink::SetRunAsAdministrator "$SMPROGRAMS\${START_FOLDER}\Uninstall.lnk"
-    #Pop $0
-    #DetailPrint "SetRunAsAdministrator: $0"
-    #DetailPrint ""
+    ShellLink::SetRunAsAdministrator "$SMPROGRAMS\${START_FOLDER}\Uninstall.lnk"
+    Pop $0
+    DetailPrint "SetRunAsAdministrator: $0"
+    DetailPrint ""
     
 sectionEnd
  

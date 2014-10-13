@@ -15,6 +15,7 @@ import tkMessageBox
 import Queue
 import threading
 import os
+import pdb
 ##############################################################################
 
 ##@var LOG_FOLDER
@@ -76,18 +77,10 @@ class pyLoggerThread(processStateMachine):
     #Constant used to indicate the state machine is in an idle state
     IDLE = 3
 
-    def __init__(self,
-                 root=None,
-                 version=None,
-                 number_of_units=2,
-                 debug_level=0):
+    def __init__(self, root=None, version=None, debug_level=0):
         """!
         The constructor for the class
         @param self The pointer for the object
-        @param root The Tkinter Tk object for the class
-        @param version The software version to be displayed
-        @param number_of_units The number of logging units to be used by the
-        class
         @param debug_level Set to greater than 1 to enable debugging
         functionality.  Set to 1 to print each database command
         that is executed to the command prompt.  Set to 2 to print the
@@ -110,7 +103,6 @@ class pyLoggerThread(processStateMachine):
         self.gui = pyLoggerGui(root=root,
                                queue=self.queue,
                                version=version,
-                               number_of_units=number_of_units,
                                log_folder=LOG_FOLDER,
                                start_command=self.start,
                                reset_command=self.stop,
@@ -129,12 +121,8 @@ class pyLoggerThread(processStateMachine):
                       'log_folder': LOG_FOLDER,
                       'debug_level': self.debug_level,
                       'queue': self.queue,
-                      'queue_data': {'status': [None for i in
-                                                range(self.gui.number_of_units)
-                                                ],
-                                     'readings':
-                                         [None for i in
-                                          range(self.gui.number_of_units)],
+                      'queue_data': {'status': [None, None],
+                                     'readings': [None, None],
                                      'file_name': None,
                                      },
                       }
