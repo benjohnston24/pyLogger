@@ -3,8 +3,8 @@
 
 """
 __author__ = "Ben Johnston"
-__revision__ = "0.1"
-__date__ = "Wed Sep 10 07:55:51 EST 2014"
+__revision__ = "0.2"
+__date__ = "Fri Oct 17 07:55:15 EST 2014"
 __license__ = "GPL"
 
 ##IMPORT#####################################################################
@@ -16,6 +16,7 @@ import os
 import threading
 import Queue
 import time
+import pdb
 #############################################################################
 
 
@@ -188,6 +189,10 @@ def process_results(**kwargs):
             #Update the display
             kwargs['queue_data']['readings'][key] = \
                 data[key][1]
+            #Update the plot
+            pdb.set_trace()
+            kwargs['queue_data']['plot_data'][key] = \
+                (1, data[key][1])
         except Queue.Empty:
             pass
 

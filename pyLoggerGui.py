@@ -22,6 +22,10 @@ import Queue
 import os
 import sys
 import time
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,\
+    NavigationToolbar2TkAgg
 #Hardware imports
 from TSI import __revision__ as TSI_rev
 from AFG import __revision__ as AFG_rev
@@ -146,12 +150,12 @@ class pyLoggerGui(stdGUI):
             self.unit_frame_dict[-1]['frame'].grid(row=1, column=i)
 
         #Add help frame
-        self.add_help_frame(self.root).grid(row=0,
-                                            column=i + 1,
-                                            rowspan=2,
-                                            padx=10,
-                                            pady=10,
-                                            sticky='N')
+        #self.add_help_frame(self.root).grid(row=0,
+        #                                    column=i + 1,
+        #                                    rowspan=2,
+        #                                    padx=10,
+        #                                    pady=10,
+        #                                    sticky='N')
         #Add start and stop buttons
         self.start_button = pyLoggerButton(self.root, text='Start',
                                            command=start_command)
@@ -159,6 +163,14 @@ class pyLoggerGui(stdGUI):
                                           command=reset_command)
         self.start_button.grid(row=2, column=0, pady=5)
         self.stop_button.grid(row=2, column=1, pady=5)
+        #Add the plotting frame
+        self.plot_frame = self.add_plot_frame(self.root)
+        self.plot_frame.grid(row=3,
+                             column=0,
+                             columnspan=i + 1,
+                             padx=10,
+                             pady=10,
+                             )
         ##Add a tool bar
         self.menu_bar = Menu(self.root)
         self.menu_bar.add_command(label='Results Folder',
@@ -222,6 +234,90 @@ class pyLoggerGui(stdGUI):
                  bg='gray').\
             grid(row=2, columnspan=2, pady=20)
         return data_dict
+
+    def add_plot_frame(self, parent=None):
+        """!
+        Add the plotting object frame to the GUI
+        @param self The pointer for the object
+        @param parent The Tk object for the GUI
+        @return A pointer to the frame containing the graph
+        """
+        plot_frame = StdFrame(parent)
+        ##@var figure
+        #The handle for the plot figure
+        self.figure = plt.Figure()
+        self.ax = self.figure.add_subplot(111)
+        canvas = FigureCanvasTkAgg(self.figure,
+                                   master=plot_frame)
+
+        canvas.get_tk_widget().pack()
+        #Add the navigation toolbar
+        toolbar = NavigationToolbar2TkAgg(canvas, plot_frame)
+        toolbar.update()
+        ##@var line
+        #An array containing the line objects for the plot
+        self.line = []
+        #Initialise the data structures
+        self.xdata = []
+        self.ydata = []
+        for i in range(self.number_of_units):
+            self.xdata.append([])
+            self.ydata.append([])
+            line, = self.ax.plot([], [])
+            self.line.append(line)
+        #Configure the axes and grid for the plot
+        self.ax.set_ylim(0, 0.5)
+        self.ax.set_xlim(0, 0.5)
+        self.ax.grid()
+
+        return plot_frame
+
+    def add_data_to_graph(self, data):
+        """!
+        A method used to add data to the plot
+        @param self The pointer for the object
+        @param data An array or tuple containing the x and y coordinates for
+        the specified data point.
+        @return The handle for the updated line in the graph
+        """
+        if data is None:
+            return self.line
+        for i in range(self.number_of_lines):
+            x, y = data[i]
+            self.xdata[i].append(x)
+            self.ydata[i].append(y)
+            self.xmin, self.xmax = self.ax.get_xlim()
+            self.ymin, self.ymax = self.ax.get_ylim()
+            #Update the x axis scale if nexessary
+            if x > self.xmax:
+                self.xmax = 2 * x
+            #Update the y axis scale if necessary
+            if y < self.ymin:
+                self.ymin = 2 * y
+            elif y > self.ymax:
+                self.ymax = 2 * y
+            #Apply the update
+            self.ax.set_ylim(self.ymin, self.ymax)
+            self.ax.set_xlim(self.xmin, self.xmax)
+            self.ax.figure.canvas.draw()
+            self.line[i].set_data(self.xdata[i], self.ydata[i])
+
+        return self.line
+
+    def construct_plot_animation(self, data_source):
+        """!
+        Method to construct the plotter animation
+        @param self The parent for the object
+        @param The data source for the object
+        """
+        ##@var anim
+        #The handle of the animation object
+        self.anim = animation.FuncAnimation(self.figure,
+                                            self.add_data_to_graph,
+                                            data_source,
+                                            blit=True,
+                                            interval=1,
+                                            repeat=False)
 
     def add_help_frame(self, parent=None):
         """!
