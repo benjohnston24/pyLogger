@@ -135,6 +135,9 @@ class pyLoggerThread(processStateMachine):
                                      'readings':
                                          [None for i in
                                           range(self.gui.number_of_units)],
+                                     'plot_data':
+                                         [None for i in
+                                          range(self.gui.number_of_units)],
                                      'file_name': None,
                                      },
                       }
