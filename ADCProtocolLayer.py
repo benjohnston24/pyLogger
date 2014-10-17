@@ -4,8 +4,8 @@ Module used for collecting data from an Analogue to Digital converter over a
 USART bus
 """
 __author__ = "Ben Johnston"
-__revision__ = "0.1"
-__date__ = "Fri Oct 10 12:35:12 EST 2014"
+__revision__ = "0.2"
+__date__ = "Fri Oct 17 13:25:02 EST 2014"
 __license__ = "GPL v2.0"
 
 ##IMPORTS#####################################################################
@@ -13,7 +13,6 @@ import serial
 from stdtoolbox.logging import logger
 import os
 from glob import glob
-import pdb
 ##############################################################################
 
 
@@ -99,8 +98,10 @@ class ADCProtocolLayer(object):
                     self.device.close()
                     self.device.open()
                     try:
+                        #Ignore the first reading
+                        self.device.readline()
                         #Get the next reading
-                        reading = self.read_msg().next()
+                        self.read_msg().next()
                         self.port = self.device.port
                         return
                     except ValueError:
@@ -137,7 +138,6 @@ class ADCProtocolLayer(object):
             self.info_logger.info('From ADC@%s: %s' %
                                   (self.device.port, response))
             response = response.strip('\r\n').strip(' ')
-            pdb.set_trace()
             yield response.strip('\r\n').strip(' ')
         except StopIteration:
             pass
