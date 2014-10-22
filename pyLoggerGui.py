@@ -164,13 +164,13 @@ class pyLoggerGui(stdGUI):
         self.start_button.grid(row=2, column=0, pady=5)
         self.stop_button.grid(row=2, column=1, pady=5)
         #Add the plotting frame
-        self.plot_frame = self.add_plot_frame(self.root)
-        self.plot_frame.grid(row=3,
-                             column=0,
-                             columnspan=i + 1,
-                             padx=10,
-                             pady=10,
-                             )
+        #self.plot_frame = self.add_plot_frame(self.root)
+        #self.plot_frame.grid(row=3,
+        #                     column=0,
+        #                     columnspan=i + 1,
+        #                     padx=10,
+        #                     pady=10,
+        #                     )
         ##Add a tool bar
         self.menu_bar = Menu(self.root)
         self.menu_bar.add_command(label='Results Folder',

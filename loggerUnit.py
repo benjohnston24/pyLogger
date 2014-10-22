@@ -6,12 +6,13 @@ the different types of hardware device to be used in the system
 """
 __author__ = "Ben Johnston"
 __revision__ = "0.2"
-__date__ = "Mon Sep  8 08:36:23 EST 2014"
-__copyright__ = "Company Confidential. Copyright (c) ResMed Ltd 201[[3]."
+__date__ = "Wed Oct 22 16:56:15 EST 2014"
+__license__ = "GPL v2.0"
 
 ##IMPORTS#####################################################################
 from TSI.TSIMeasure import TSIMeasure
 from AFG.AFGMeasure import AFGMeasure
+from ADCMeasure import ADCMeasure
 from stdtoolbox.logging import logger
 import sys
 #Used to test program with "Dev" unit type
@@ -22,7 +23,7 @@ import time
 ##@var UNIT_TYPES
 #This variable is a list of all devices available for use in the system
 UNIT_TYPES = ["--None--", "Mecmesin Force Gauge", "TSI 4000 Flow Meter",
-              "Dev",
+              "ADC", "Dev",
               ]
 
 ##@var NO_TYPE
@@ -37,9 +38,13 @@ AFG = 1
 #Type for the TSI flow meter
 TSI = 2
 
+##@var ADC
+#Type for the analogue to digital converter
+ADC = 3
+
 ##@var DEV_TYPE
 #Flag for the development type
-DEV_TYPE = 3
+DEV_TYPE = 4
 
 ##@var CONNECTION_TYPES
 #This variable stores a list of all connection types available to serial
@@ -148,6 +153,9 @@ class loggerUnit(object):
             #The flow meter device handle
             self.connected = CONNECTION_TYPES[NOT_CONNECTED]
             self.results_types = ['flow', 'temp', 'press']
+        elif unit_type == UNIT_TYPES[ADC]:
+            self.connected = CONNECTION_TYPES[NOT_CONNECTED]
+            self.results_types = ['value' for i in range(6)]
         elif unit_type == UNIT_TYPES[DEV_TYPE]:
             #Debbuging unit type
             self.device = None
@@ -170,12 +178,16 @@ class loggerUnit(object):
             try:
                 if self.unit_type == UNIT_TYPES[AFG]:
                     #Use the force gauge type
-                    self.device = AFGMeasure(self.serial_port,
-                                             self.debug_level)
+                    self.device = AFGMeasure(serial_port=self.serial_port,
+                                             debug_level=self.debug_level)
                 elif self.unit_type == UNIT_TYPES[TSI]:
                     #Use the flow meter
-                    self.device = TSIMeasure(self.serial_port,
-                                             self.debug_level)
+                    self.device = TSIMeasure(serial_port=self.serial_port,
+                                             debug_level=self.debug_level)
+                elif self.unit_type == UNIT_TYPES[ADC]:
+                    #Use the analogue to digital converter
+                    self.device = ADCMeasure(serial_port=self.serial_port,
+                                             debug_level=self.debug_level)
                 #Connect to the device
                 if self.device.port is not None:
                     self.connected = CONNECTION_TYPES[CONNECTED]
@@ -235,6 +247,7 @@ class loggerUnit(object):
                         self.device.get_measurement()
                     display_result = return_result['force/torque']
                     return (return_result, display_result)
+
                 elif self.unit_type == UNIT_TYPES[TSI]:
                     #Use the flow meter
                     #Take a single reading
@@ -244,8 +257,18 @@ class loggerUnit(object):
                         return_result[key] = result[key][0]
                     display_result = return_result['flow']
                     return (return_result, display_result)
+
+                elif self.unit_type == UNIT_TYPES[ADC]:
+                    #Use the ADC
+                    result = self.device.get_measurement()
+                    for i in range(len(result)):
+                        return_result['%d' % (i + 1)] = result[i]
+                    display_result = result[0]
+                    return (return_result, display_result)
+                    #Return nothing if none selected
                 else:
                     return (None, None)
+
             except Exception, e:
                 #Raise an exception if an error occured.  Wrap in loggeruni
                 #exception class

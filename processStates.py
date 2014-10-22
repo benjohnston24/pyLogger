@@ -190,7 +190,6 @@ def process_results(**kwargs):
             kwargs['queue_data']['readings'][key] = \
                 data[key][1]
             #Update the plot
-            pdb.set_trace()
             kwargs['queue_data']['plot_data'][key] = \
                 (1, data[key][1])
         except Queue.Empty:
