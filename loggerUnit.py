@@ -155,7 +155,7 @@ class loggerUnit(object):
             self.results_types = ['flow', 'temp', 'press']
         elif unit_type == UNIT_TYPES[ADC]:
             self.connected = CONNECTION_TYPES[NOT_CONNECTED]
-            self.results_types = ['value' for i in range(6)]
+            self.results_types = ['%d' % i for i in range(1, 7)]
         elif unit_type == UNIT_TYPES[DEV_TYPE]:
             #Debbuging unit type
             self.device = None

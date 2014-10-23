@@ -129,14 +129,14 @@ def configure_system(**kwargs):
 
 def measurement_thread(thread_id, device, queue):
     result_dict = {}
-    measure_log = csvLogger('measure_log.csv')
-    start = time.time()
+    #measure_log = csvLogger('measure_log.csv')
+    #start = time.time()
     result_dict[thread_id] = []
     try:
         result_dict[thread_id] = device.retrieve_measurement()
         queue.put(result_dict)
-        finish = time.time()
-        measure_log.write_line('%s,%0.2f' % (device.unit_type, finish - start))
+        #finish = time.time()
+        #measure_log.write_line('%s,%0.2f' % (device.unit_type, finish - start))
     except:
         result_dict[thread_id]['error'] = 1
 
@@ -216,6 +216,10 @@ def log_reading(**kwargs):
                 data_to_write.append(result['temp'])
             if 'random' in keys:
                 data_to_write.append(result['random'])
+            for i in range(1, 7):
+                if '%d' % i in keys:
+                    data_to_write.append(result['%d' % i])
+
     #Write the data
     kwargs['results_log'].write_line(data_to_write,
                                      date_time_flag=True)
