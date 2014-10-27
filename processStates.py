@@ -123,6 +123,10 @@ def configure_system(**kwargs):
     #if write_header:
     #    kwargs['results_log'].write_line(kwargs['header'],
     #                                     date_time_flag=False)
+
+    kwargs['gui_object'].construct_plot_animation(
+        kwargs['gui_object'].process_incoming)
+
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
 
@@ -190,7 +194,6 @@ def process_results(**kwargs):
             kwargs['queue_data']['readings'][key] = \
                 data[key][1]
             #Update the plot
-            pdb.set_trace()
             kwargs['queue_data']['plot_data'][key] = \
                 (1, data[key][1])
         except Queue.Empty:

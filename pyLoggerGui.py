@@ -32,6 +32,9 @@ from AFG import __revision__ as AFG_rev
 #If the system is a Windows OS import required packages
 if os.name == 'nt':
     import subprocess
+
+
+import pdb
 ##############################################################################
 
 ##@var MAX_WIDGET_WIDTH
@@ -115,6 +118,7 @@ class pyLoggerGui(stdGUI):
         #controls the number of log unit frames that are generated and
         #displayed
         self.number_of_units = number_of_units
+        self.number_of_lines = 1
         ##@var log_folder
         #The folder where results are stored
         self.log_folder = log_folder
@@ -149,13 +153,6 @@ class pyLoggerGui(stdGUI):
             #Display frame
             self.unit_frame_dict[-1]['frame'].grid(row=1, column=i)
 
-        #Add help frame
-        #self.add_help_frame(self.root).grid(row=0,
-        #                                    column=i + 1,
-        #                                    rowspan=2,
-        #                                    padx=10,
-        #                                    pady=10,
-        #                                    sticky='N')
         #Add start and stop buttons
         self.start_button = pyLoggerButton(self.root, text='Start',
                                            command=start_command)
@@ -280,10 +277,10 @@ class pyLoggerGui(stdGUI):
         the specified data point.
         @return The handle for the updated line in the graph
         """
-        if data is None:
+        if (data is None) or (None in data):
             return self.line
         for i in range(self.number_of_lines):
-            x, y = data[i]
+            x, y = data
             self.xdata[i].append(x)
             self.ydata[i].append(y)
             self.xmin, self.xmax = self.ax.get_xlim()
@@ -513,6 +510,9 @@ class pyLoggerGui(stdGUI):
                                                                       reading))
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
+                #Provide the plot data
+                for i in range(len(data['plot_data'])):
+                    yield data['plot_data'][i]
 
             except Queue.Empty:
                 pass
