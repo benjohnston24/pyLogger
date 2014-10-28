@@ -118,7 +118,7 @@ class pyLoggerGui(stdGUI):
         #controls the number of log unit frames that are generated and
         #displayed
         self.number_of_units = number_of_units
-        self.number_of_lines = 1
+        self.number_of_lines = number_of_units
         ##@var log_folder
         #The folder where results are stored
         self.log_folder = log_folder
@@ -280,7 +280,7 @@ class pyLoggerGui(stdGUI):
         if (data is None) or (None in data):
             return self.line
         for i in range(self.number_of_lines):
-            x, y = data
+            x, y = data[i]
             self.xdata[i].append(x)
             self.ydata[i].append(y)
             self.xmin, self.xmax = self.ax.get_xlim()
@@ -511,8 +511,7 @@ class pyLoggerGui(stdGUI):
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
                 #Provide the plot data
-                for i in range(len(data['plot_data'])):
-                    yield data['plot_data'][i]
+                yield data['plot_data']
 
             except Queue.Empty:
                 pass

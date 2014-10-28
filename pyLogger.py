@@ -18,7 +18,7 @@ import sys
 #Define the crash logger
 crashlog = crashLogger()
 #Re-route the exception handler to log uncaught exceptions
-sys.excepthook = crashlog.log_crash
+#sys.excepthook = crashlog.log_crash
 
 #Process command line arguments
 parser = argparse.ArgumentParser()

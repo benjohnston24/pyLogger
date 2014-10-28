@@ -131,16 +131,14 @@ def configure_system(**kwargs):
     return kwargs
 
 
-def measurement_thread(thread_id, device, queue):
+def measurement_thread(thread_id, device, start_time, queue):
     result_dict = {}
-    measure_log = csvLogger('measure_log.csv')
-    start = time.time()
     result_dict[thread_id] = []
     try:
-        result_dict[thread_id] = device.retrieve_measurement()
+        tmp_dict, reading = device.retrieve_measurement()
+        time_stamp = time.time() - start_time
+        result_dict[thread_id] = [tmp_dict, reading, time_stamp]
         queue.put(result_dict)
-        finish = time.time()
-        measure_log.write_line('%s,%0.2f' % (device.unit_type, finish - start))
     except:
         result_dict[thread_id]['error'] = 1
 
@@ -153,11 +151,13 @@ def take_reading(**kwargs):
         i = 0
         for device in kwargs['devices']:
             tmp = device
-            worker = threading.Thread(target=measurement_thread,
-                                      args=[i, tmp,
-                                            kwargs['results_queue']])
-            worker.start()
-            kwargs['workers'].append(worker)
+            if tmp.unit_type != '--None--':
+                worker = threading.Thread(target=measurement_thread,
+                                          args=[i, tmp,
+                                                kwargs['start'],
+                                                kwargs['results_queue']])
+                worker.start()
+                kwargs['workers'].append(worker)
             i += 1
 
         #Wait for the measurement threads to stop
@@ -195,7 +195,7 @@ def process_results(**kwargs):
                 data[key][1]
             #Update the plot
             kwargs['queue_data']['plot_data'][key] = \
-                (1, data[key][1])
+                (data[key][2], data[key][1])
         except Queue.Empty:
             pass
 
@@ -224,10 +224,7 @@ def log_reading(**kwargs):
     kwargs['results_log'].write_line(data_to_write,
                                      date_time_flag=True)
     if kwargs['counter'] > 10:
-        kwargs['finish'] = time.time()
-        #kwargs['debug_log'].write_line([(kwargs['finish'] - kwargs['start'])])
         kwargs['counter'] = 0
-        kwargs['start'] = time.time()
     else:
         kwargs['counter'] += 1
     kwargs['exit_status'] = state._SUCCESS

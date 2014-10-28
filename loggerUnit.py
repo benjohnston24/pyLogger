@@ -17,6 +17,7 @@ import sys
 #Used to test program with "Dev" unit type
 import random
 import time
+
 ##############################################################################
 
 ##@var UNIT_TYPES
