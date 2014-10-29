@@ -263,8 +263,8 @@ class pyLoggerGui(stdGUI):
             line, = self.ax.plot([], [])
             self.line.append(line)
         #Configure the axes and grid for the plot
-        self.ax.set_ylim(0, 0.5)
-        self.ax.set_xlim(0, 0.5)
+        self.ax.set_ylim(0, 10)
+        self.ax.set_xlim(0, 10)
         self.ax.grid()
 
         return plot_frame
@@ -277,6 +277,7 @@ class pyLoggerGui(stdGUI):
         the specified data point.
         @return The handle for the updated line in the graph
         """
+        axis_scale_factor = 1.1
         if (data is None) or (None in data):
             return self.line
         for i in range(self.number_of_lines):
@@ -284,15 +285,19 @@ class pyLoggerGui(stdGUI):
             self.xdata[i].append(x)
             self.ydata[i].append(y)
             self.xmin, self.xmax = self.ax.get_xlim()
+            window_width = self.xmax - self.xmin
             self.ymin, self.ymax = self.ax.get_ylim()
+            ##@todo if the recorder is not running do not update axes
             #Update the x axis scale if nexessary
             if x > self.xmax:
-                self.xmax = 2 * x
+                self.xmax += (window_width * 0.01)
+                self.xmin += (window_width * 0.01)
+                print(self.xmin, self.xmax)
             #Update the y axis scale if necessary
             if y < self.ymin:
-                self.ymin = 2 * y
+                self.ymin = axis_scale_factor * y
             elif y > self.ymax:
-                self.ymax = 2 * y
+                self.ymax = axis_scale_factor * y
             #Apply the update
             self.ax.set_ylim(self.ymin, self.ymax)
             self.ax.set_xlim(self.xmin, self.xmax)
@@ -313,7 +318,7 @@ class pyLoggerGui(stdGUI):
                                             self.add_data_to_graph,
                                             data_source,
                                             blit=True,
-                                            interval=1,
+                                            interval=10,
                                             repeat=False)
 
     def add_help_frame(self, parent=None):
