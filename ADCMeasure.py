@@ -9,6 +9,7 @@ __license__ = "GPL v2.0"
 
 ##IMPORTS#####################################################################
 from ADCProtocolLayer import ADCProtocolLayer
+import pdb
 ##############################################################################
 
 
@@ -31,8 +32,22 @@ class ADCMeasure(ADCProtocolLayer):
         the measurement taken from channel 1 and the 2nd element from ADC
         channel 2 etc.
         """
-        measurement_list = []
-        measurement = self.read_msg().next().split(',')
-        for data in measurement:
-            measurement_list.append(int(data.split(':')[1]))
-        return measurement_list
+        while True:
+            try:
+                measurement_list = []
+                key_list = []
+                measurement = [0]
+                measurement = self.read_msg().next().split(',')
+                for data in measurement:
+                    measurement_list.append(int(data.split(':')[1]))
+                    key_list.append(int(data.split(':')[0]))
+                return_flag = True
+                for i in range(1, 6):
+                    if i not in key_list:
+                        return_flag = False
+                if return_flag and len(measurement_list) == 6:
+                    return measurement_list
+            except IndexError:
+                pass
+            except Exception, e:
+                pdb.set_trace()

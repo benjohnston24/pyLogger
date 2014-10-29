@@ -461,7 +461,7 @@ class pyLoggerGui(stdGUI):
         @param self The pointer for the object
         """
         while self.queue.qsize():
-            self.debug_logger.info('Gui: Received data from threads')
+            #self.debug_logger.info('Gui: Received data from threads')
             try:
                 data = self.queue.get()
                 #Check for errors
@@ -469,10 +469,10 @@ class pyLoggerGui(stdGUI):
                    (data['error_info'] is not None):
                     if (time.time() - self.error_timer) > ERROR_TIME:
                         #Log the error
-                        self.debug_logger.info('Received error type'
-                                               ' %s' % data['error_type'])
-                        self.debug_logger.info('Received error info'
-                                               ' %s' % data['error_info'])
+                        #self.debug_logger.info('Received error type'
+                        #                       ' %s' % data['error_type'])
+                        #self.debug_logger.info('Received error info'
+                        #                       ' %s' % data['error_info'])
                         #Display error to user
                         tkMessageBox.showerror(
                             data['error_type'],
@@ -482,17 +482,17 @@ class pyLoggerGui(stdGUI):
                 #Update the file name
                 if data['file_name'] is not None:
                     #Log the receipt of file_name
-                    self.debug_logger.info(
-                        'Received file name: %s' % data['file_name'])
+                    #self.debug_logger.info(
+                    #    'Received file name: %s' % data['file_name'])
                     self.log_name.set(data['file_name'])
                 #Scroll through each of the unit windows
                 for i in range(len(data['status'])):
                     status = data['status'][i]
                     if status is not None:
                         #Update the connection status variable
-                        self.debug_logger.info(
-                            'Received connection status for device'
-                            ' %d: %s' % ((i + 1), status))
+                        #self.debug_logger.info(
+                        #    'Received connection status for device'
+                        #    ' %d: %s' % ((i + 1), status))
                         self.unit_frame_dict[i]['status'].set(
                             status)
                         #Update the colour fo the status message
@@ -508,9 +508,9 @@ class pyLoggerGui(stdGUI):
                     #Update the reading variable
                     reading = data['readings'][i]
                     if reading is not None:
-                        self.debug_logger.info('Received reading '
-                                               'for device %d: %s' % ((i + 1),
-                                                                      reading))
+                        #self.debug_logger.info('Received reading '
+                        #                       'for device %d: %s' % ((i + 1),
+                        #                                              reading))
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
 

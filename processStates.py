@@ -138,7 +138,9 @@ def measurement_thread(thread_id, device, queue):
         #finish = time.time()
         #measure_log.write_line('%s,%0.2f' % (device.unit_type, finish - start))
     except:
-        result_dict[thread_id]['error'] = 1
+        #pdb.set_trace()
+        #result_dict[thread_id]['error'] = 1
+        pass
 
 
 def take_reading(**kwargs):

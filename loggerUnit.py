@@ -18,6 +18,8 @@ import sys
 #Used to test program with "Dev" unit type
 import random
 import time
+
+import pdb
 ##############################################################################
 
 ##@var UNIT_TYPES
@@ -260,9 +262,12 @@ class loggerUnit(object):
 
                 elif self.unit_type == UNIT_TYPES[ADC]:
                     #Use the ADC
-                    result = self.device.get_measurement()
-                    for i in range(len(result)):
-                        return_result['%d' % (i + 1)] = result[i]
+                    try:
+                        result = self.device.get_measurement()
+                        for i in range(len(result)):
+                            return_result['%d' % (i + 1)] = result[i]
+                    except Exception, e:
+                        pdb.set_trace() 
                     display_result = result[0]
                     return (return_result, display_result)
                     #Return nothing if none selected

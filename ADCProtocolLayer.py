@@ -62,7 +62,7 @@ class ADCProtocolLayer(object):
         self.xonxoff = False
         self.parity = serial.PARITY_NONE
         self.stopbits = serial.STOPBITS_ONE
-        self.timeout = 0.5
+        self.timeout = 1 
         self.rtscts = False
         self.dsrdtr = False
         #Create the serial object for the device
