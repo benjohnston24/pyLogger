@@ -243,7 +243,11 @@ class pyLoggerGui(stdGUI):
         ##@var figure
         #The handle for the plot figure
         self.figure = plt.Figure()
-        self.ax = self.figure.add_subplot(111)
+        self.figure.subplots_adjust()
+        self.ax = []
+        for i in range(1, self.number_of_units + 1):
+            self.ax.append(self.figure.add_subplot((i * 100)
+                                                   + 11))
         canvas = FigureCanvasTkAgg(self.figure,
                                    master=plot_frame)
 
@@ -258,14 +262,13 @@ class pyLoggerGui(stdGUI):
         self.xdata = []
         self.ydata = []
         for i in range(self.number_of_units):
-            self.xdata.append([])
             self.ydata.append([])
-            line, = self.ax.plot([], [])
+            line, = self.ax[i].plot([], [])
             self.line.append(line)
-        #Configure the axes and grid for the plot
-        self.ax.set_ylim(0, 10)
-        self.ax.set_xlim(0, 10)
-        self.ax.grid()
+            #Configure the axes and grid for the plot
+            self.ax[i].set_ylim(0, 10)
+            self.ax[i].set_xlim(0, 10)
+            self.ax[i].grid()
 
         return plot_frame
 
@@ -292,7 +295,6 @@ class pyLoggerGui(stdGUI):
             if x > self.xmax:
                 self.xmax += (window_width * 0.01)
                 self.xmin += (window_width * 0.01)
-                print(self.xmin, self.xmax)
             #Update the y axis scale if necessary
             if y < self.ymin:
                 self.ymin = axis_scale_factor * y
