@@ -32,6 +32,9 @@ from AFG import __revision__ as AFG_rev
 #If the system is a Windows OS import required packages
 if os.name == 'nt':
     import subprocess
+
+
+import pdb
 ##############################################################################
 
 ##@var MAX_WIDGET_WIDTH
@@ -115,6 +118,7 @@ class pyLoggerGui(stdGUI):
         #controls the number of log unit frames that are generated and
         #displayed
         self.number_of_units = number_of_units
+        self.number_of_lines = number_of_units
         ##@var log_folder
         #The folder where results are stored
         self.log_folder = log_folder
@@ -149,13 +153,6 @@ class pyLoggerGui(stdGUI):
             #Display frame
             self.unit_frame_dict[-1]['frame'].grid(row=1, column=i)
 
-        #Add help frame
-        #self.add_help_frame(self.root).grid(row=0,
-        #                                    column=i + 1,
-        #                                    rowspan=2,
-        #                                    padx=10,
-        #                                    pady=10,
-        #                                    sticky='N')
         #Add start and stop buttons
         self.start_button = pyLoggerButton(self.root, text='Start',
                                            command=start_command)
@@ -164,14 +161,14 @@ class pyLoggerGui(stdGUI):
         self.start_button.grid(row=2, column=0, pady=5)
         self.stop_button.grid(row=2, column=1, pady=5)
         #Add the plotting frame
-        #self.plot_frame = self.add_plot_frame(self.root)
-        #self.plot_frame.grid(row=3,
-        #                     column=0,
-        #                     columnspan=i + 1,
-        #                     padx=10,
-        #                     pady=10,
-        #                     )
-        ##Add a tool bar
+        self.plot_frame = self.add_plot_frame(self.root)
+        self.plot_frame.grid(row=3,
+                             column=0,
+                             columnspan=i + 1,
+                             padx=10,
+                             pady=10,
+                             )
+        #Add a tool bar
         self.menu_bar = Menu(self.root)
         self.menu_bar.add_command(label='Results Folder',
                                   command=self.open_results)
@@ -246,7 +243,11 @@ class pyLoggerGui(stdGUI):
         ##@var figure
         #The handle for the plot figure
         self.figure = plt.Figure()
-        self.ax = self.figure.add_subplot(111)
+        self.figure.subplots_adjust()
+        self.ax = []
+        for i in range(1, self.number_of_units + 1):
+            self.ax.append(self.figure.add_subplot((i * 100)
+                                                   + 11))
         canvas = FigureCanvasTkAgg(self.figure,
                                    master=plot_frame)
 
@@ -261,14 +262,13 @@ class pyLoggerGui(stdGUI):
         self.xdata = []
         self.ydata = []
         for i in range(self.number_of_units):
-            self.xdata.append([])
             self.ydata.append([])
-            line, = self.ax.plot([], [])
+            line, = self.ax[i].plot([], [])
             self.line.append(line)
-        #Configure the axes and grid for the plot
-        self.ax.set_ylim(0, 0.5)
-        self.ax.set_xlim(0, 0.5)
-        self.ax.grid()
+            #Configure the axes and grid for the plot
+            self.ax[i].set_ylim(0, 10)
+            self.ax[i].set_xlim(0, 10)
+            self.ax[i].grid()
 
         return plot_frame
 
@@ -280,22 +280,26 @@ class pyLoggerGui(stdGUI):
         the specified data point.
         @return The handle for the updated line in the graph
         """
-        if data is None:
+        axis_scale_factor = 1.1
+        if (data is None) or (None in data):
             return self.line
         for i in range(self.number_of_lines):
             x, y = data[i]
             self.xdata[i].append(x)
             self.ydata[i].append(y)
             self.xmin, self.xmax = self.ax.get_xlim()
+            window_width = self.xmax - self.xmin
             self.ymin, self.ymax = self.ax.get_ylim()
+            ##@todo if the recorder is not running do not update axes
             #Update the x axis scale if nexessary
             if x > self.xmax:
-                self.xmax = 2 * x
+                self.xmax += (window_width * 0.01)
+                self.xmin += (window_width * 0.01)
             #Update the y axis scale if necessary
             if y < self.ymin:
-                self.ymin = 2 * y
+                self.ymin = axis_scale_factor * y
             elif y > self.ymax:
-                self.ymax = 2 * y
+                self.ymax = axis_scale_factor * y
             #Apply the update
             self.ax.set_ylim(self.ymin, self.ymax)
             self.ax.set_xlim(self.xmin, self.xmax)
@@ -316,7 +320,7 @@ class pyLoggerGui(stdGUI):
                                             self.add_data_to_graph,
                                             data_source,
                                             blit=True,
-                                            interval=1,
+                                            interval=10,
                                             repeat=False)
 
     def add_help_frame(self, parent=None):
@@ -513,6 +517,8 @@ class pyLoggerGui(stdGUI):
                         #                                              reading))
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
+                #Provide the plot data
+                yield data['plot_data']
 
             except Queue.Empty:
                 pass

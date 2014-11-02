@@ -19,7 +19,6 @@ import sys
 import random
 import time
 
-import pdb
 ##############################################################################
 
 ##@var UNIT_TYPES
