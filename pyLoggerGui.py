@@ -23,6 +23,7 @@ import os
 import sys
 import time
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,\
     NavigationToolbar2TkAgg
@@ -119,6 +120,7 @@ class pyLoggerGui(stdGUI):
         #displayed
         self.number_of_units = number_of_units
         self.number_of_lines = number_of_units
+        self.plot_data = [None for i in range(number_of_units)]
         ##@var log_folder
         #The folder where results are stored
         self.log_folder = log_folder
@@ -160,6 +162,9 @@ class pyLoggerGui(stdGUI):
                                           command=reset_command)
         self.start_button.grid(row=2, column=0, pady=5)
         self.stop_button.grid(row=2, column=1, pady=5)
+        #Set a plot rate counter
+        self.plot_rate = 0
+        self.plot_counter = 11
         #Add the plotting frame
         self.plot_frame = self.add_plot_frame(self.root)
         self.plot_frame.grid(row=3,
@@ -242,16 +247,21 @@ class pyLoggerGui(stdGUI):
         plot_frame = StdFrame(parent)
         ##@var figure
         #The handle for the plot figure
-        self.figure = plt.Figure()
+        self.figure = plt.Figure(facecolor='white')
+        self.gs = gridspec.GridSpec(self.number_of_units, 1)
+        self.gs.update(hspace=0.5)
         self.figure.subplots_adjust()
         self.ax = []
-        for i in range(1, self.number_of_units + 1):
-            self.ax.append(self.figure.add_subplot((i * 100)
-                                                   + 11))
+        for i in range(self.number_of_units):
+            self.ax.append(self.figure.add_subplot(self.gs[i]))
+            self.ax[-1].set_title('Device %d' % (i + 1))
+            self.ax[-1].set_xlabel('Time (s)')
         canvas = FigureCanvasTkAgg(self.figure,
-                                   master=plot_frame)
+                                   master=plot_frame,
+                                   )
 
         canvas.get_tk_widget().pack()
+        canvas.get_tk_widget().tk_setPalette(background='white')
         #Add the navigation toolbar
         toolbar = NavigationToolbar2TkAgg(canvas, plot_frame)
         toolbar.update()
@@ -262,6 +272,7 @@ class pyLoggerGui(stdGUI):
         self.xdata = []
         self.ydata = []
         for i in range(self.number_of_units):
+            self.xdata.append([])
             self.ydata.append([])
             line, = self.ax[i].plot([], [])
             self.line.append(line)
@@ -272,7 +283,7 @@ class pyLoggerGui(stdGUI):
 
         return plot_frame
 
-    def add_data_to_graph(self, data):
+    def add_data_to_graph(self, event):
         """!
         A method used to add data to the plot
         @param self The pointer for the object
@@ -280,31 +291,36 @@ class pyLoggerGui(stdGUI):
         the specified data point.
         @return The handle for the updated line in the graph
         """
-        axis_scale_factor = 1.1
-        if (data is None) or (None in data):
+        data = self.yield_plot_data().next()
+        if self.plot_counter < self.plot_rate:
+            self.plot_counter += 1
             return self.line
+
+        axis_scale_factor = 3
         for i in range(self.number_of_lines):
-            x, y = data[i]
-            self.xdata[i].append(x)
-            self.ydata[i].append(y)
-            self.xmin, self.xmax = self.ax.get_xlim()
-            window_width = self.xmax - self.xmin
-            self.ymin, self.ymax = self.ax.get_ylim()
-            ##@todo if the recorder is not running do not update axes
-            #Update the x axis scale if nexessary
-            if x > self.xmax:
-                self.xmax += (window_width * 0.01)
-                self.xmin += (window_width * 0.01)
-            #Update the y axis scale if necessary
-            if y < self.ymin:
-                self.ymin = axis_scale_factor * y
-            elif y > self.ymax:
-                self.ymax = axis_scale_factor * y
-            #Apply the update
-            self.ax.set_ylim(self.ymin, self.ymax)
-            self.ax.set_xlim(self.xmin, self.xmax)
-            self.ax.figure.canvas.draw()
-            self.line[i].set_data(self.xdata[i], self.ydata[i])
+            if data[i] is not None:
+                self.plot_counter = 0
+                x, y = data[i]
+                self.xdata[i].append(x)
+                self.ydata[i].append(y)
+                self.xmin, self.xmax = self.ax[i].get_xlim()
+                window_width = self.xmax - self.xmin
+                self.ymin, self.ymax = self.ax[i].get_ylim()
+                ##@todo if the recorder is not running do not update axes
+                #Update the x axis scale if nexessary
+                if x > self.xmax:
+                    self.xmax += (window_width * 0.01)
+                    self.xmin += (window_width * 0.01)
+                #Update the y axis scale if necessary
+                if y < self.ymin:
+                    self.ymin = axis_scale_factor * y
+                elif y > self.ymax:
+                    self.ymax = axis_scale_factor * y
+                #Apply the update
+                self.ax[i].set_ylim(self.ymin, self.ymax)
+                self.ax[i].set_xlim(self.xmin, self.xmax)
+                self.ax[i].figure.canvas.draw()
+                self.line[i].set_data(self.xdata[i], self.ydata[i])
 
         return self.line
 
@@ -318,9 +334,9 @@ class pyLoggerGui(stdGUI):
         #The handle of the animation object
         self.anim = animation.FuncAnimation(self.figure,
                                             self.add_data_to_graph,
-                                            data_source,
+                                            #data_source,
                                             blit=True,
-                                            interval=10,
+                                            interval=1,
                                             repeat=False)
 
     def add_help_frame(self, parent=None):
@@ -512,18 +528,22 @@ class pyLoggerGui(stdGUI):
                     #Update the reading variable
                     reading = data['readings'][i]
                     if reading is not None:
-                        #self.debug_logger.info('Received reading '
-                        #                       'for device %d: %s' % ((i + 1),
-                        #                                              reading))
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
                 #Provide the plot data
-                yield data['plot_data']
+                self.plot_data = data['plot_data']
+                #yield data['plot_data']
 
             except Queue.Empty:
                 pass
             except Exception, e:
+                pdb.set_trace()
                 self.debug_logger.info(e.__str__())
+
+    def yield_plot_data(self):
+        """!
+        """
+        yield self.plot_data
 
     def validate_inputs(self):
         """!

@@ -124,8 +124,7 @@ def configure_system(**kwargs):
     #                                     date_time_flag=False)
 
     kwargs['gui_object'].construct_plot_animation(
-        kwargs['gui_object'].process_incoming)
-
+        kwargs['gui_object'].add_data_to_graph)
     kwargs['exit_status'] = state._SUCCESS
     return kwargs
 

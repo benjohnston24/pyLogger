@@ -15,6 +15,8 @@ import tkMessageBox
 import Queue
 import threading
 import os
+
+import pdb
 ##############################################################################
 
 ##@var LOG_FOLDER
@@ -196,6 +198,10 @@ class pyLoggerThread(processStateMachine):
             #A thread object to execute the worker thread
             self.worker = threading.Thread(target=self.run)
             self.run_status = self.RUNNING
+            #Clear the plots
+            pdb.set_trace()
+            for line in self.cargo['gui_object'].line:
+                line.remove()
             #Start the thread
             self.worker.start()
         else:
