@@ -16,7 +16,7 @@ import Queue
 import threading
 import os
 
-import pdb
+#import pdb
 ##############################################################################
 
 ##@var LOG_FOLDER
@@ -199,9 +199,9 @@ class pyLoggerThread(processStateMachine):
             self.worker = threading.Thread(target=self.run)
             self.run_status = self.RUNNING
             #Clear the plots
-            pdb.set_trace()
-            for line in self.cargo['gui_object'].line:
-                line.remove()
+            #pdb.set_trace()
+            #for line in self.cargo['gui_object'].line:
+            #    line.remove()
             #Start the thread
             self.worker.start()
         else:

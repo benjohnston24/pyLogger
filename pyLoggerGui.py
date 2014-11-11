@@ -35,7 +35,6 @@ if os.name == 'nt':
     import subprocess
 
 
-import pdb
 ##############################################################################
 
 ##@var MAX_WIDGET_WIDTH
@@ -166,13 +165,13 @@ class pyLoggerGui(stdGUI):
         self.plot_rate = 0
         self.plot_counter = 11
         #Add the plotting frame
-        self.plot_frame = self.add_plot_frame(self.root)
-        self.plot_frame.grid(row=3,
-                             column=0,
-                             columnspan=i + 1,
-                             padx=10,
-                             pady=10,
-                             )
+        #self.plot_frame = self.add_plot_frame(self.root)
+        #self.plot_frame.grid(row=3,
+        #                     column=0,
+        #                     columnspan=i + 1,
+        #                     padx=10,
+        #                     pady=10,
+        #                     )
         #Add a tool bar
         self.menu_bar = Menu(self.root)
         self.menu_bar.add_command(label='Results Folder',
@@ -531,13 +530,12 @@ class pyLoggerGui(stdGUI):
                         self.unit_frame_dict[i]['reading'].set(
                             '%0.2f' % reading)
                 #Provide the plot data
-                self.plot_data = data['plot_data']
+                #self.plot_data = data['plot_data']
                 #yield data['plot_data']
 
             except Queue.Empty:
                 pass
             except Exception, e:
-                pdb.set_trace()
                 self.debug_logger.info(e.__str__())
 
     def yield_plot_data(self):
