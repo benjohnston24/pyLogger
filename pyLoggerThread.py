@@ -206,7 +206,8 @@ class pyLoggerThread(processStateMachine):
             self.worker.start()
         else:
             tkMessageBox.showinfo('Missing Information',
-                                  'File name required',
+                                  'Enter file name and at least one device is'
+                                  ' selected',
                                   parent=self.root)
 
     def stop(self):

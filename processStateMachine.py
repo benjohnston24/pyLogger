@@ -114,7 +114,8 @@ class processStateMachine(StateMachine):
 
         self.log_state.set_next_state([
             self.measure_state,
-            self.error_state])
+            self.error_state,
+            self.complete_state])
 
         self.complete_state.set_next_state([
             self.system_setup_state,

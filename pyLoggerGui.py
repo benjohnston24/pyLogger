@@ -3,7 +3,7 @@
 
 """
 __author__ = "Ben Johnston"
-__revision__ = "0.4"
+__revision__ = "0.5"
 __date__ = "Thu Oct  9 08:32:48 EST 2014"
 __license__ = "GPL"
 
@@ -14,7 +14,7 @@ from pyLoggerWidgets import pyLoggerButton
 from stdtoolbox import __revision__ as std_rev
 from stdtoolbox.logging import logger
 from loggerUnit import UNIT_TYPES, CONNECTION_TYPES
-from Tkinter import Menu, StringVar, OptionMenu, Toplevel, CENTER, LEFT
+from Tkinter import Menu, StringVar, IntVar, OptionMenu, Toplevel, CENTER, LEFT
 from Tkinter import Image as tkImage
 import tkMessageBox
 import tkFont
@@ -34,7 +34,7 @@ from AFG import __revision__ as AFG_rev
 if os.name == 'nt':
     import subprocess
 
-
+import pdb
 ##############################################################################
 
 ##@var MAX_WIDGET_WIDTH
@@ -125,22 +125,38 @@ class pyLoggerGui(stdGUI):
         self.log_folder = log_folder
         StdLabel(self.file_frame,
                  text='Test Id:', justify='left').\
-            grid(row=0, column=0, sticky='W')
+            grid(row=0, column=0, sticky='W', padx=10, pady=2)
 
         #Add the text entry field
         self.file_entry = StdEntry(self.file_frame,
                                    textvariable=self.file_name,
                                    width=int(MAX_WIDGET_WIDTH * 1.5))
         self.file_entry.grid(row=0, column=1, sticky='W',
-                             padx=10)
+                             padx=10, pady=2)
 
+        #Add the time entry field
+        StdLabel(self.file_frame,
+                 text='Test Duration (s):', justify='left').\
+            grid(row=1, column=0, sticky='W', padx=10, pady=2)
+
+        self.test_duration = IntVar()
+        self.test_duration.set(20)
+        self.duration_entry = StdEntry(self.file_frame,
+                                       textvariable=self.test_duration,
+                                       width=5)
+        self.duration_entry.grid(row=1, column=1, sticky='W', padx=10, pady=2)
+        StdLabel(self.file_frame,
+                 text='*Set to 0 for continuous recording mode', justify='left').\
+            grid(row=2, column=1, sticky='W', padx=10, pady=2)
+
+        #Log name
         self.log_name = StringVar()
         StdLabel(self.file_frame,
                  text='Log File Name: ', justify='left').\
-            grid(row=1, column=0, sticky='W')
+            grid(row=3, column=0, sticky='W', padx=10, pady=2)
         StdLabel(self.file_frame,
                  textvariable=self.log_name, justify='left').\
-            grid(row=1, column=1, sticky='W', padx=10)
+            grid(row=3, column=1, sticky='W', padx=10, pady=2)
         #Display the file name grid
         self.file_frame.grid(row=0, columnspan=2,
                              sticky='W', pady=5)
@@ -549,6 +565,14 @@ class pyLoggerGui(stdGUI):
         @param self The pointer for the object
         @return True if the inputs are valid, False if not.
         """
+        #All device types cannot be None
+        all_devices_none = True
+        for device in self.unit_frame_dict:
+            if device['unit'].get() != UNIT_TYPES[0]:
+                all_devices_none = False
+        if all_devices_none:
+            return False
+
         #The file name cannot be blank
         if self.file_name.get() is '':
             return False

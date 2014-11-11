@@ -16,6 +16,7 @@ import os
 import threading
 import Queue
 import time
+import pdb
 #############################################################################
 
 
@@ -36,6 +37,7 @@ def system_setup(**kwargs):
     kwargs['file_name'] = os.path.join(kwargs['log_folder'],
                                        kwargs['gui_object'].file_name.get()
                                        + '.csv')
+    kwargs['time_limit'] = kwargs['gui_object'].test_duration.get()
     #Construct the device objects
     frames = range(len(kwargs['gui_object'].unit_frame_dict))
     kwargs['devices'] = [None for i in frames]
@@ -231,7 +233,13 @@ def log_reading(**kwargs):
         kwargs['counter'] = 0
     else:
         kwargs['counter'] += 1
-    kwargs['exit_status'] = state._SUCCESS
+
+    #If the data recording is time limited
+    if (kwargs['time_limit'] > 0) and\
+       ((time.time() - kwargs['start']) >= kwargs['time_limit']):
+        kwargs['exit_status'] = state._FIRST_BRANCH
+    else:
+        kwargs['exit_status'] = state._SUCCESS
     return kwargs
 
 
